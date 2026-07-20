@@ -1,0 +1,6 @@
+{
+  "name": "Controle Financeiro",
+  "description": "Aplicativo de finanças completo com integração bancária simulada, análise de gastos com Inteligência Artificial, gráficos intuitivos, suporte multi-moedas e sincronização em tempo real.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

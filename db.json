@@ -1,0 +1,1627 @@
+{
+  "SYNC-4YKBXI": {
+    "syncCode": "SYNC-4YKBXI",
+    "preferences": {
+      "baseCurrency": "BRL",
+      "userName": "samuel"
+    },
+    "banks": [
+      {
+        "bankId": "manual",
+        "name": "Carteira / Manual",
+        "connected": true,
+        "balance": 450,
+        "currency": "BRL",
+        "lastSync": "2026-07-18T03:05:25.742Z"
+      },
+      {
+        "bankId": "nubank",
+        "name": "Nubank",
+        "connected": false,
+        "balance": 0,
+        "currency": "BRL",
+        "lastSync": null
+      },
+      {
+        "bankId": "itau",
+        "name": "Itaú Unibanco",
+        "connected": false,
+        "balance": 0,
+        "currency": "BRL",
+        "lastSync": null
+      },
+      {
+        "bankId": "bb",
+        "name": "Banco do Brasil",
+        "connected": false,
+        "balance": 0,
+        "currency": "BRL",
+        "lastSync": null
+      },
+      {
+        "bankId": "bradesco",
+        "name": "Bradesco",
+        "connected": false,
+        "balance": 0,
+        "currency": "BRL",
+        "lastSync": null
+      }
+    ],
+    "budgets": [
+      {
+        "category": "Alimentação",
+        "limit": 1200,
+        "currency": "BRL"
+      },
+      {
+        "category": "Lazer",
+        "limit": 500,
+        "currency": "BRL"
+      },
+      {
+        "category": "Transporte",
+        "limit": 400,
+        "currency": "BRL"
+      },
+      {
+        "category": "Moradia",
+        "limit": 2500,
+        "currency": "BRL"
+      }
+    ],
+    "transactions": [
+      {
+        "id": "t1",
+        "description": "Salário Mensal",
+        "amount": 5500,
+        "type": "income",
+        "category": "Salário",
+        "date": "2026-07-01",
+        "currency": "BRL",
+        "bankId": "manual"
+      },
+      {
+        "id": "t2",
+        "description": "Supermercado Pão de Açúcar",
+        "amount": 450,
+        "type": "expense",
+        "category": "Alimentação",
+        "date": "2026-07-05",
+        "currency": "BRL",
+        "bankId": "manual"
+      },
+      {
+        "id": "t3",
+        "description": "Aluguel Apartamento",
+        "amount": 2200,
+        "type": "expense",
+        "category": "Moradia",
+        "date": "2026-07-10",
+        "currency": "BRL",
+        "bankId": "manual"
+      },
+      {
+        "id": "t4",
+        "description": "Assinatura Netflix",
+        "amount": 14.99,
+        "type": "expense",
+        "category": "Lazer",
+        "date": "2026-07-12",
+        "currency": "USD",
+        "bankId": "manual"
+      },
+      {
+        "id": "t5",
+        "description": "Freelance Design UI",
+        "amount": 350,
+        "type": "income",
+        "category": "Salário",
+        "date": "2026-07-14",
+        "currency": "USD",
+        "bankId": "manual"
+      },
+      {
+        "id": "t6",
+        "description": "Uber Viagem Trabalho",
+        "amount": 32.5,
+        "type": "expense",
+        "category": "Transporte",
+        "date": "2026-07-15",
+        "currency": "BRL",
+        "bankId": "manual"
+      },
+      {
+        "id": "t7",
+        "description": "Jantar Restaurante Japonês",
+        "amount": 180,
+        "type": "expense",
+        "category": "Alimentação",
+        "date": "2026-07-16",
+        "currency": "BRL",
+        "bankId": "manual"
+      }
+    ],
+    "lastUpdated": 1784344714119,
+    "customCategories": [],
+    "investments": [],
+    "creditCards": []
+  },
+  "users": {
+    "991626946s@gmail.com": {
+      "id": "usr_c7i3b9ice",
+      "name": "samuel",
+      "email": "991626946s@gmail.com",
+      "password": "helo2701",
+      "baseCurrency": "BRL",
+      "syncCode": "SYNC-CO52LO",
+      "createdAt": 1784345077994
+    }
+  },
+  "SYNC-CO52LO": {
+    "syncCode": "SYNC-CO52LO",
+    "preferences": {
+      "baseCurrency": "BRL",
+      "userName": "samuel",
+      "appLockPin": "1234"
+    },
+    "banks": [
+      {
+        "bankId": "manual",
+        "name": "Carteira / Manual",
+        "connected": true,
+        "balance": 0,
+        "currency": "BRL",
+        "lastSync": "2026-07-18T14:36:10.093Z"
+      },
+      {
+        "bankId": "nubank",
+        "name": "Nubank",
+        "connected": false,
+        "balance": 0,
+        "currency": "BRL",
+        "lastSync": null
+      },
+      {
+        "bankId": "itau",
+        "name": "Itaú Unibanco",
+        "connected": false,
+        "balance": 0,
+        "currency": "BRL",
+        "lastSync": null
+      },
+      {
+        "bankId": "bb",
+        "name": "Banco do Brasil",
+        "connected": false,
+        "balance": 0,
+        "currency": "BRL",
+        "lastSync": null
+      },
+      {
+        "bankId": "bradesco",
+        "name": "Bradesco",
+        "connected": false,
+        "balance": 0,
+        "currency": "BRL",
+        "lastSync": null
+      }
+    ],
+    "budgets": [
+      {
+        "category": "Alimentação",
+        "limit": 500,
+        "currency": "BRL"
+      },
+      {
+        "category": "Lazer",
+        "limit": 500,
+        "currency": "BRL"
+      },
+      {
+        "category": "Transporte",
+        "limit": 400,
+        "currency": "BRL"
+      },
+      {
+        "category": "Moradia",
+        "limit": 200,
+        "currency": "BRL"
+      }
+    ],
+    "transactions": [
+      {
+        "description": "Netflix",
+        "amount": 19.9,
+        "type": "expense",
+        "category": "Assinaturas",
+        "currency": "BRL",
+        "date": "2026-07-18",
+        "bankId": "nubank",
+        "paid": false,
+        "paymentMethod": "transferencia",
+        "id": "tx_pfrfmrmvx"
+      },
+      {
+        "description": "casa (47/48)",
+        "amount": 900,
+        "type": "expense",
+        "category": "Alimentação",
+        "currency": "BRL",
+        "date": "2030-06-10",
+        "bankId": null,
+        "paid": false,
+        "paymentMethod": "pix",
+        "installmentsTotal": 48,
+        "installmentNumber": 47,
+        "id": "tx_jry7i5h44"
+      },
+      {
+        "description": "casa (46/48)",
+        "amount": 900,
+        "type": "expense",
+        "category": "Alimentação",
+        "currency": "BRL",
+        "date": "2030-05-10",
+        "bankId": null,
+        "paid": true,
+        "paymentMethod": "pix",
+        "installmentsTotal": 48,
+        "installmentNumber": 46,
+        "id": "tx_z81x54cvm"
+      },
+      {
+        "description": "casa (45/48)",
+        "amount": 900,
+        "type": "expense",
+        "category": "Alimentação",
+        "currency": "BRL",
+        "date": "2030-04-10",
+        "bankId": null,
+        "paid": false,
+        "paymentMethod": "pix",
+        "installmentsTotal": 48,
+        "installmentNumber": 45,
+        "id": "tx_p7rh8ttii"
+      },
+      {
+        "description": "casa (44/48)",
+        "amount": 900,
+        "type": "expense",
+        "category": "Alimentação",
+        "currency": "BRL",
+        "date": "2030-03-10",
+        "bankId": null,
+        "paid": false,
+        "paymentMethod": "pix",
+        "installmentsTotal": 48,
+        "installmentNumber": 44,
+        "id": "tx_z7hye2nyn"
+      },
+      {
+        "description": "casa (43/48)",
+        "amount": 900,
+        "type": "expense",
+        "category": "Alimentação",
+        "currency": "BRL",
+        "date": "2030-02-10",
+        "bankId": null,
+        "paid": false,
+        "paymentMethod": "pix",
+        "installmentsTotal": 48,
+        "installmentNumber": 43,
+        "id": "tx_xen200log"
+      },
+      {
+        "description": "casa (42/48)",
+        "amount": 900,
+        "type": "expense",
+        "category": "Alimentação",
+        "currency": "BRL",
+        "date": "2030-01-10",
+        "bankId": null,
+        "paid": false,
+        "paymentMethod": "pix",
+        "installmentsTotal": 48,
+        "installmentNumber": 42,
+        "id": "tx_gceh6lk1x"
+      },
+      {
+        "description": "casa (41/48)",
+        "amount": 900,
+        "type": "expense",
+        "category": "Alimentação",
+        "currency": "BRL",
+        "date": "2029-12-10",
+        "bankId": null,
+        "paid": false,
+        "paymentMethod": "pix",
+        "installmentsTotal": 48,
+        "installmentNumber": 41,
+        "id": "tx_ouuccps46"
+      },
+      {
+        "description": "casa (40/48)",
+        "amount": 900,
+        "type": "expense",
+        "category": "Alimentação",
+        "currency": "BRL",
+        "date": "2029-11-10",
+        "bankId": null,
+        "paid": false,
+        "paymentMethod": "pix",
+        "installmentsTotal": 48,
+        "installmentNumber": 40,
+        "id": "tx_h6c93if0e"
+      },
+      {
+        "description": "casa (39/48)",
+        "amount": 900,
+        "type": "expense",
+        "category": "Alimentação",
+        "currency": "BRL",
+        "date": "2029-10-10",
+        "bankId": null,
+        "paid": false,
+        "paymentMethod": "pix",
+        "installmentsTotal": 48,
+        "installmentNumber": 39,
+        "id": "tx_8urq2mel8"
+      },
+      {
+        "description": "casa (38/48)",
+        "amount": 900,
+        "type": "expense",
+        "category": "Alimentação",
+        "currency": "BRL",
+        "date": "2029-09-10",
+        "bankId": null,
+        "paid": false,
+        "paymentMethod": "pix",
+        "installmentsTotal": 48,
+        "installmentNumber": 38,
+        "id": "tx_ibpe2b8hb"
+      },
+      {
+        "description": "casa (37/48)",
+        "amount": 900,
+        "type": "expense",
+        "category": "Alimentação",
+        "currency": "BRL",
+        "date": "2029-08-10",
+        "bankId": null,
+        "paid": false,
+        "paymentMethod": "pix",
+        "installmentsTotal": 48,
+        "installmentNumber": 37,
+        "id": "tx_q33g7h2rc"
+      },
+      {
+        "description": "casa (36/48)",
+        "amount": 900,
+        "type": "expense",
+        "category": "Alimentação",
+        "currency": "BRL",
+        "date": "2029-07-10",
+        "bankId": null,
+        "paid": false,
+        "paymentMethod": "pix",
+        "installmentsTotal": 48,
+        "installmentNumber": 36,
+        "id": "tx_ovtaq7mmk"
+      },
+      {
+        "description": "casa (35/48)",
+        "amount": 900,
+        "type": "expense",
+        "category": "Alimentação",
+        "currency": "BRL",
+        "date": "2029-06-10",
+        "bankId": null,
+        "paid": false,
+        "paymentMethod": "pix",
+        "installmentsTotal": 48,
+        "installmentNumber": 35,
+        "id": "tx_qt5nxzdnx"
+      },
+      {
+        "description": "casa (34/48)",
+        "amount": 900,
+        "type": "expense",
+        "category": "Alimentação",
+        "currency": "BRL",
+        "date": "2029-05-10",
+        "bankId": null,
+        "paid": false,
+        "paymentMethod": "pix",
+        "installmentsTotal": 48,
+        "installmentNumber": 34,
+        "id": "tx_581jjquz5"
+      },
+      {
+        "description": "casa (33/48)",
+        "amount": 900,
+        "type": "expense",
+        "category": "Alimentação",
+        "currency": "BRL",
+        "date": "2029-04-10",
+        "bankId": null,
+        "paid": false,
+        "paymentMethod": "pix",
+        "installmentsTotal": 48,
+        "installmentNumber": 33,
+        "id": "tx_94avgfunf"
+      },
+      {
+        "description": "casa (32/48)",
+        "amount": 900,
+        "type": "expense",
+        "category": "Alimentação",
+        "currency": "BRL",
+        "date": "2029-03-10",
+        "bankId": null,
+        "paid": false,
+        "paymentMethod": "pix",
+        "installmentsTotal": 48,
+        "installmentNumber": 32,
+        "id": "tx_rf88mq6z7"
+      },
+      {
+        "description": "casa (31/48)",
+        "amount": 900,
+        "type": "expense",
+        "category": "Alimentação",
+        "currency": "BRL",
+        "date": "2029-02-10",
+        "bankId": null,
+        "paid": false,
+        "paymentMethod": "pix",
+        "installmentsTotal": 48,
+        "installmentNumber": 31,
+        "id": "tx_p51veh9yn"
+      },
+      {
+        "description": "casa (30/48)",
+        "amount": 900,
+        "type": "expense",
+        "category": "Alimentação",
+        "currency": "BRL",
+        "date": "2029-01-10",
+        "bankId": null,
+        "paid": false,
+        "paymentMethod": "pix",
+        "installmentsTotal": 48,
+        "installmentNumber": 30,
+        "id": "tx_z14r1vxyo"
+      },
+      {
+        "description": "casa (29/48)",
+        "amount": 900,
+        "type": "expense",
+        "category": "Alimentação",
+        "currency": "BRL",
+        "date": "2028-12-10",
+        "bankId": null,
+        "paid": false,
+        "paymentMethod": "pix",
+        "installmentsTotal": 48,
+        "installmentNumber": 29,
+        "id": "tx_5491crlq1"
+      },
+      {
+        "description": "casa (28/48)",
+        "amount": 900,
+        "type": "expense",
+        "category": "Alimentação",
+        "currency": "BRL",
+        "date": "2028-11-10",
+        "bankId": null,
+        "paid": false,
+        "paymentMethod": "pix",
+        "installmentsTotal": 48,
+        "installmentNumber": 28,
+        "id": "tx_iv9xsddmz"
+      },
+      {
+        "description": "casa (27/48)",
+        "amount": 900,
+        "type": "expense",
+        "category": "Alimentação",
+        "currency": "BRL",
+        "date": "2028-10-10",
+        "bankId": null,
+        "paid": false,
+        "paymentMethod": "pix",
+        "installmentsTotal": 48,
+        "installmentNumber": 27,
+        "id": "tx_4q5ck6vxu"
+      },
+      {
+        "description": "casa (26/48)",
+        "amount": 900,
+        "type": "expense",
+        "category": "Alimentação",
+        "currency": "BRL",
+        "date": "2028-09-10",
+        "bankId": null,
+        "paid": false,
+        "paymentMethod": "pix",
+        "installmentsTotal": 48,
+        "installmentNumber": 26,
+        "id": "tx_tl6ys3hi3"
+      },
+      {
+        "description": "casa (25/48)",
+        "amount": 900,
+        "type": "expense",
+        "category": "Alimentação",
+        "currency": "BRL",
+        "date": "2028-08-10",
+        "bankId": null,
+        "paid": false,
+        "paymentMethod": "pix",
+        "installmentsTotal": 48,
+        "installmentNumber": 25,
+        "id": "tx_zdb13mu5y"
+      },
+      {
+        "description": "casa (24/48)",
+        "amount": 900,
+        "type": "expense",
+        "category": "Alimentação",
+        "currency": "BRL",
+        "date": "2028-07-10",
+        "bankId": null,
+        "paid": false,
+        "paymentMethod": "pix",
+        "installmentsTotal": 48,
+        "installmentNumber": 24,
+        "id": "tx_6o0b1a4zl"
+      },
+      {
+        "description": "casa (23/48)",
+        "amount": 900,
+        "type": "expense",
+        "category": "Alimentação",
+        "currency": "BRL",
+        "date": "2028-06-10",
+        "bankId": null,
+        "paid": false,
+        "paymentMethod": "pix",
+        "installmentsTotal": 48,
+        "installmentNumber": 23,
+        "id": "tx_4mxtt484a"
+      },
+      {
+        "description": "casa (22/48)",
+        "amount": 900,
+        "type": "expense",
+        "category": "Alimentação",
+        "currency": "BRL",
+        "date": "2028-05-10",
+        "bankId": null,
+        "paid": false,
+        "paymentMethod": "pix",
+        "installmentsTotal": 48,
+        "installmentNumber": 22,
+        "id": "tx_fdf7nf4bw"
+      },
+      {
+        "description": "casa (21/48)",
+        "amount": 900,
+        "type": "expense",
+        "category": "Alimentação",
+        "currency": "BRL",
+        "date": "2028-04-10",
+        "bankId": null,
+        "paid": false,
+        "paymentMethod": "pix",
+        "installmentsTotal": 48,
+        "installmentNumber": 21,
+        "id": "tx_vfdf2imbs"
+      },
+      {
+        "description": "casa (20/48)",
+        "amount": 900,
+        "type": "expense",
+        "category": "Alimentação",
+        "currency": "BRL",
+        "date": "2028-03-10",
+        "bankId": null,
+        "paid": false,
+        "paymentMethod": "pix",
+        "installmentsTotal": 48,
+        "installmentNumber": 20,
+        "id": "tx_fd6mepeo3"
+      },
+      {
+        "description": "casa (19/48)",
+        "amount": 900,
+        "type": "expense",
+        "category": "Alimentação",
+        "currency": "BRL",
+        "date": "2028-02-10",
+        "bankId": null,
+        "paid": false,
+        "paymentMethod": "pix",
+        "installmentsTotal": 48,
+        "installmentNumber": 19,
+        "id": "tx_iatht1ad1"
+      },
+      {
+        "description": "casa (18/48)",
+        "amount": 900,
+        "type": "expense",
+        "category": "Alimentação",
+        "currency": "BRL",
+        "date": "2028-01-10",
+        "bankId": null,
+        "paid": false,
+        "paymentMethod": "pix",
+        "installmentsTotal": 48,
+        "installmentNumber": 18,
+        "id": "tx_5677k7wms"
+      },
+      {
+        "description": "casa (17/48)",
+        "amount": 900,
+        "type": "expense",
+        "category": "Alimentação",
+        "currency": "BRL",
+        "date": "2027-12-10",
+        "bankId": null,
+        "paid": false,
+        "paymentMethod": "pix",
+        "installmentsTotal": 48,
+        "installmentNumber": 17,
+        "id": "tx_sjnmkmnag"
+      },
+      {
+        "description": "casa (16/48)",
+        "amount": 900,
+        "type": "expense",
+        "category": "Alimentação",
+        "currency": "BRL",
+        "date": "2027-11-10",
+        "bankId": null,
+        "paid": false,
+        "paymentMethod": "pix",
+        "installmentsTotal": 48,
+        "installmentNumber": 16,
+        "id": "tx_1b0unvadx"
+      },
+      {
+        "description": "casa (15/48)",
+        "amount": 900,
+        "type": "expense",
+        "category": "Alimentação",
+        "currency": "BRL",
+        "date": "2027-10-10",
+        "bankId": null,
+        "paid": false,
+        "paymentMethod": "pix",
+        "installmentsTotal": 48,
+        "installmentNumber": 15,
+        "id": "tx_60738yk2r"
+      },
+      {
+        "description": "casa (14/48)",
+        "amount": 900,
+        "type": "expense",
+        "category": "Alimentação",
+        "currency": "BRL",
+        "date": "2027-09-10",
+        "bankId": null,
+        "paid": false,
+        "paymentMethod": "pix",
+        "installmentsTotal": 48,
+        "installmentNumber": 14,
+        "id": "tx_k8acn7c8z"
+      },
+      {
+        "description": "casa (13/48)",
+        "amount": 900,
+        "type": "expense",
+        "category": "Alimentação",
+        "currency": "BRL",
+        "date": "2027-08-10",
+        "bankId": null,
+        "paid": false,
+        "paymentMethod": "pix",
+        "installmentsTotal": 48,
+        "installmentNumber": 13,
+        "id": "tx_mx56orlb5"
+      },
+      {
+        "description": "casa (12/48)",
+        "amount": 900,
+        "type": "expense",
+        "category": "Alimentação",
+        "currency": "BRL",
+        "date": "2027-07-10",
+        "bankId": null,
+        "paid": false,
+        "paymentMethod": "pix",
+        "installmentsTotal": 48,
+        "installmentNumber": 12,
+        "id": "tx_40haki9zp"
+      },
+      {
+        "description": "casa (11/48)",
+        "amount": 900,
+        "type": "expense",
+        "category": "Alimentação",
+        "currency": "BRL",
+        "date": "2027-06-10",
+        "bankId": null,
+        "paid": false,
+        "paymentMethod": "pix",
+        "installmentsTotal": 48,
+        "installmentNumber": 11,
+        "id": "tx_97em9o28g"
+      },
+      {
+        "description": "casa (10/48)",
+        "amount": 900,
+        "type": "expense",
+        "category": "Alimentação",
+        "currency": "BRL",
+        "date": "2027-05-10",
+        "bankId": null,
+        "paid": false,
+        "paymentMethod": "pix",
+        "installmentsTotal": 48,
+        "installmentNumber": 10,
+        "id": "tx_xoizixkjx"
+      },
+      {
+        "description": "casa (9/48)",
+        "amount": 900,
+        "type": "expense",
+        "category": "Alimentação",
+        "currency": "BRL",
+        "date": "2027-04-10",
+        "bankId": null,
+        "paid": false,
+        "paymentMethod": "pix",
+        "installmentsTotal": 48,
+        "installmentNumber": 9,
+        "id": "tx_fr5gvc61b"
+      },
+      {
+        "description": "casa (8/48)",
+        "amount": 900,
+        "type": "expense",
+        "category": "Alimentação",
+        "currency": "BRL",
+        "date": "2027-03-10",
+        "bankId": null,
+        "paid": false,
+        "paymentMethod": "pix",
+        "installmentsTotal": 48,
+        "installmentNumber": 8,
+        "id": "tx_qqamxw3mn"
+      },
+      {
+        "description": "casa (7/48)",
+        "amount": 900,
+        "type": "expense",
+        "category": "Alimentação",
+        "currency": "BRL",
+        "date": "2027-02-10",
+        "bankId": null,
+        "paid": false,
+        "paymentMethod": "pix",
+        "installmentsTotal": 48,
+        "installmentNumber": 7,
+        "id": "tx_krmtn4tmn"
+      },
+      {
+        "description": "casa (6/48)",
+        "amount": 900,
+        "type": "expense",
+        "category": "Alimentação",
+        "currency": "BRL",
+        "date": "2027-01-10",
+        "bankId": null,
+        "paid": false,
+        "paymentMethod": "pix",
+        "installmentsTotal": 48,
+        "installmentNumber": 6,
+        "id": "tx_g87tdi8o5"
+      },
+      {
+        "description": "casa (5/48)",
+        "amount": 900,
+        "type": "expense",
+        "category": "Alimentação",
+        "currency": "BRL",
+        "date": "2026-12-10",
+        "bankId": null,
+        "paid": false,
+        "paymentMethod": "pix",
+        "installmentsTotal": 48,
+        "installmentNumber": 5,
+        "id": "tx_3j67mew7j"
+      },
+      {
+        "description": "casa (4/48)",
+        "amount": 900,
+        "type": "expense",
+        "category": "Alimentação",
+        "currency": "BRL",
+        "date": "2026-11-10",
+        "bankId": null,
+        "paid": false,
+        "paymentMethod": "pix",
+        "installmentsTotal": 48,
+        "installmentNumber": 4,
+        "id": "tx_6wud8tu2x"
+      },
+      {
+        "description": "casa (3/48)",
+        "amount": 900,
+        "type": "expense",
+        "category": "Alimentação",
+        "currency": "BRL",
+        "date": "2026-10-10",
+        "bankId": null,
+        "paid": false,
+        "paymentMethod": "pix",
+        "installmentsTotal": 48,
+        "installmentNumber": 3,
+        "id": "tx_vw5f83ehy"
+      },
+      {
+        "description": "casa (2/48)",
+        "amount": 900,
+        "type": "expense",
+        "category": "Alimentação",
+        "currency": "BRL",
+        "date": "2026-09-10",
+        "bankId": null,
+        "paid": false,
+        "paymentMethod": "pix",
+        "installmentsTotal": 48,
+        "installmentNumber": 2,
+        "id": "tx_3g3anm75r"
+      },
+      {
+        "description": "casa (1/48)",
+        "amount": 900,
+        "type": "expense",
+        "category": "Alimentação",
+        "currency": "BRL",
+        "date": "2026-08-10",
+        "bankId": null,
+        "paid": true,
+        "paymentMethod": "pix",
+        "installmentsTotal": 48,
+        "installmentNumber": 1,
+        "id": "tx_gkyl56yg3"
+      },
+      {
+        "description": "55",
+        "amount": 2,
+        "type": "expense",
+        "category": "Alimentação",
+        "currency": "BRL",
+        "date": "2026-07-18",
+        "bankId": null,
+        "paid": true,
+        "paymentMethod": "pix",
+        "id": "tx_a165ik3jx"
+      },
+      {
+        "description": "Salário Mensal",
+        "amount": 5500,
+        "type": "income",
+        "category": "Salário",
+        "currency": "BRL",
+        "date": "2026-02-01",
+        "bankId": "manual",
+        "paid": true,
+        "id": "tx_hist_sal_feb"
+      },
+      {
+        "description": "Supermercado Líder",
+        "amount": 600,
+        "type": "expense",
+        "category": "Alimentação",
+        "currency": "BRL",
+        "date": "2026-02-05",
+        "bankId": "manual",
+        "paid": true,
+        "id": "tx_hist_sup_feb"
+      },
+      {
+        "description": "Cinema e Pipoca",
+        "amount": 80,
+        "type": "expense",
+        "category": "Lazer",
+        "currency": "BRL",
+        "date": "2026-02-12",
+        "bankId": "manual",
+        "paid": true,
+        "id": "tx_hist_cin_feb"
+      },
+      {
+        "description": "Combustível Carro",
+        "amount": 250,
+        "type": "expense",
+        "category": "Transporte",
+        "currency": "BRL",
+        "date": "2026-02-18",
+        "bankId": "manual",
+        "paid": true,
+        "id": "tx_hist_comb_feb"
+      },
+      {
+        "description": "Jantar Comemoração",
+        "amount": 150,
+        "type": "expense",
+        "category": "Alimentação",
+        "currency": "BRL",
+        "date": "2026-02-25",
+        "bankId": "manual",
+        "paid": true,
+        "id": "tx_hist_jant_feb"
+      },
+      {
+        "description": "Salário Mensal",
+        "amount": 5500,
+        "type": "income",
+        "category": "Salário",
+        "currency": "BRL",
+        "date": "2026-03-01",
+        "bankId": "manual",
+        "paid": true,
+        "id": "tx_hist_sal_mar"
+      },
+      {
+        "description": "Supermercado Líder",
+        "amount": 550,
+        "type": "expense",
+        "category": "Alimentação",
+        "currency": "BRL",
+        "date": "2026-03-05",
+        "bankId": "manual",
+        "paid": true,
+        "id": "tx_hist_sup_mar"
+      },
+      {
+        "description": "Assinatura Netflix",
+        "amount": 55,
+        "type": "expense",
+        "category": "Lazer",
+        "currency": "BRL",
+        "date": "2026-03-10",
+        "bankId": "manual",
+        "paid": true,
+        "id": "tx_hist_net_mar"
+      },
+      {
+        "description": "Uber Trabalho",
+        "amount": 120,
+        "type": "expense",
+        "category": "Transporte",
+        "currency": "BRL",
+        "date": "2026-03-15",
+        "bankId": "manual",
+        "paid": true,
+        "id": "tx_hist_uber_mar"
+      },
+      {
+        "description": "Novas Roupas de Inverno",
+        "amount": 300,
+        "type": "expense",
+        "category": "Compras",
+        "currency": "BRL",
+        "date": "2026-03-20",
+        "bankId": "manual",
+        "paid": true,
+        "id": "tx_hist_roup_mar"
+      },
+      {
+        "description": "Salário Mensal",
+        "amount": 5500,
+        "type": "income",
+        "category": "Salário",
+        "currency": "BRL",
+        "date": "2026-04-01",
+        "bankId": "manual",
+        "paid": true,
+        "id": "tx_hist_sal_apr"
+      },
+      {
+        "description": "Supermercado Líder",
+        "amount": 620,
+        "type": "expense",
+        "category": "Alimentação",
+        "currency": "BRL",
+        "date": "2026-04-05",
+        "bankId": "manual",
+        "paid": true,
+        "id": "tx_hist_sup_apr"
+      },
+      {
+        "description": "Show ao Vivo",
+        "amount": 200,
+        "type": "expense",
+        "category": "Lazer",
+        "currency": "BRL",
+        "date": "2026-04-12",
+        "bankId": "manual",
+        "paid": true,
+        "id": "tx_hist_show_apr"
+      },
+      {
+        "description": "Combustível Carro",
+        "amount": 270,
+        "type": "expense",
+        "category": "Transporte",
+        "currency": "BRL",
+        "date": "2026-04-18",
+        "bankId": "manual",
+        "paid": true,
+        "id": "tx_hist_comb_apr"
+      },
+      {
+        "description": "Livros de Finanças",
+        "amount": 90,
+        "type": "expense",
+        "category": "Lazer",
+        "currency": "BRL",
+        "date": "2026-04-22",
+        "bankId": "manual",
+        "paid": true,
+        "id": "tx_hist_liv_apr"
+      },
+      {
+        "description": "Salário Mensal",
+        "amount": 5500,
+        "type": "income",
+        "category": "Salário",
+        "currency": "BRL",
+        "date": "2026-05-01",
+        "bankId": "manual",
+        "paid": true,
+        "id": "tx_hist_sal_may"
+      },
+      {
+        "description": "Supermercado Líder",
+        "amount": 580,
+        "type": "expense",
+        "category": "Alimentação",
+        "currency": "BRL",
+        "date": "2026-05-05",
+        "bankId": "manual",
+        "paid": true,
+        "id": "tx_hist_sup_may"
+      },
+      {
+        "description": "Viagem Fim de Semana",
+        "amount": 450,
+        "type": "expense",
+        "category": "Lazer",
+        "currency": "BRL",
+        "date": "2026-05-15",
+        "bankId": "manual",
+        "paid": true,
+        "id": "tx_hist_viag_may"
+      },
+      {
+        "description": "Uber Viagens",
+        "amount": 140,
+        "type": "expense",
+        "category": "Transporte",
+        "currency": "BRL",
+        "date": "2026-05-18",
+        "bankId": "manual",
+        "paid": true,
+        "id": "tx_hist_uber_may"
+      },
+      {
+        "description": "Almoço Restaurante",
+        "amount": 120,
+        "type": "expense",
+        "category": "Alimentação",
+        "currency": "BRL",
+        "date": "2026-05-24",
+        "bankId": "manual",
+        "paid": true,
+        "id": "tx_hist_rest_may"
+      },
+      {
+        "description": "Salário Mensal",
+        "amount": 5500,
+        "type": "income",
+        "category": "Salário",
+        "currency": "BRL",
+        "date": "2026-06-01",
+        "bankId": "manual",
+        "paid": true,
+        "id": "tx_hist_sal_jun"
+      },
+      {
+        "description": "Supermercado Líder",
+        "amount": 610,
+        "type": "expense",
+        "category": "Alimentação",
+        "currency": "BRL",
+        "date": "2026-06-05",
+        "bankId": "manual",
+        "paid": true,
+        "id": "tx_hist_sup_jun"
+      },
+      {
+        "description": "Pizza de Sexta-feira",
+        "amount": 95,
+        "type": "expense",
+        "category": "Lazer",
+        "currency": "BRL",
+        "date": "2026-06-12",
+        "bankId": "manual",
+        "paid": true,
+        "id": "tx_hist_piz_jun"
+      },
+      {
+        "description": "Combustível Carro",
+        "amount": 260,
+        "type": "expense",
+        "category": "Transporte",
+        "currency": "BRL",
+        "date": "2026-06-18",
+        "bankId": "manual",
+        "paid": true,
+        "id": "tx_hist_comb_jun"
+      },
+      {
+        "description": "Compras Importados Shopee",
+        "amount": 180,
+        "type": "expense",
+        "category": "Compras",
+        "currency": "BRL",
+        "date": "2026-06-25",
+        "bankId": "manual",
+        "paid": true,
+        "id": "tx_hist_shop_jun"
+      }
+    ],
+    "lastUpdated": 1784386343520,
+    "customCategories": [],
+    "investments": [],
+    "creditCards": []
+  },
+  "SYNC-5JFOP8": {
+    "syncCode": "SYNC-5JFOP8",
+    "preferences": {
+      "baseCurrency": "BRL",
+      "userName": "Explorador"
+    },
+    "banks": [
+      {
+        "bankId": "manual",
+        "name": "Carteira / Manual",
+        "connected": true,
+        "balance": 450,
+        "currency": "BRL",
+        "lastSync": "2026-07-18T13:44:17.042Z"
+      },
+      {
+        "bankId": "nubank",
+        "name": "Nubank",
+        "connected": false,
+        "balance": 0,
+        "currency": "BRL",
+        "lastSync": null
+      },
+      {
+        "bankId": "itau",
+        "name": "Itaú Unibanco",
+        "connected": false,
+        "balance": 0,
+        "currency": "BRL",
+        "lastSync": null
+      },
+      {
+        "bankId": "bb",
+        "name": "Banco do Brasil",
+        "connected": false,
+        "balance": 0,
+        "currency": "BRL",
+        "lastSync": null
+      },
+      {
+        "bankId": "bradesco",
+        "name": "Bradesco",
+        "connected": false,
+        "balance": 0,
+        "currency": "BRL",
+        "lastSync": null
+      }
+    ],
+    "budgets": [
+      {
+        "category": "Alimentação",
+        "limit": 1200,
+        "currency": "BRL"
+      },
+      {
+        "category": "Lazer",
+        "limit": 500,
+        "currency": "BRL"
+      },
+      {
+        "category": "Transporte",
+        "limit": 400,
+        "currency": "BRL"
+      },
+      {
+        "category": "Moradia",
+        "limit": 2500,
+        "currency": "BRL"
+      }
+    ],
+    "transactions": [
+      {
+        "id": "t1",
+        "description": "Salário Mensal",
+        "amount": 5500,
+        "type": "income",
+        "category": "Salário",
+        "date": "2026-07-01",
+        "currency": "BRL",
+        "bankId": "manual"
+      },
+      {
+        "id": "t2",
+        "description": "Supermercado Pão de Açúcar",
+        "amount": 450,
+        "type": "expense",
+        "category": "Alimentação",
+        "date": "2026-07-05",
+        "currency": "BRL",
+        "bankId": "manual"
+      },
+      {
+        "id": "t3",
+        "description": "Aluguel Apartamento",
+        "amount": 2200,
+        "type": "expense",
+        "category": "Moradia",
+        "date": "2026-07-10",
+        "currency": "BRL",
+        "bankId": "manual"
+      },
+      {
+        "id": "t4",
+        "description": "Assinatura Netflix",
+        "amount": 14.99,
+        "type": "expense",
+        "category": "Lazer",
+        "date": "2026-07-12",
+        "currency": "USD",
+        "bankId": "manual"
+      },
+      {
+        "id": "t5",
+        "description": "Freelance Design UI",
+        "amount": 350,
+        "type": "income",
+        "category": "Salário",
+        "date": "2026-07-14",
+        "currency": "USD",
+        "bankId": "manual"
+      },
+      {
+        "id": "t6",
+        "description": "Uber Viagem Trabalho",
+        "amount": 32.5,
+        "type": "expense",
+        "category": "Transporte",
+        "date": "2026-07-15",
+        "currency": "BRL",
+        "bankId": "manual"
+      },
+      {
+        "id": "t7",
+        "description": "Jantar Restaurante Japonês",
+        "amount": 180,
+        "type": "expense",
+        "category": "Alimentação",
+        "date": "2026-07-16",
+        "currency": "BRL",
+        "bankId": "manual"
+      }
+    ],
+    "lastUpdated": 1784382257042
+  },
+  "SYNC-1WXLUM": {
+    "syncCode": "SYNC-1WXLUM",
+    "preferences": {
+      "baseCurrency": "BRL",
+      "userName": "Explorador"
+    },
+    "banks": [
+      {
+        "bankId": "manual",
+        "name": "Carteira / Manual",
+        "connected": true,
+        "balance": 450,
+        "currency": "BRL",
+        "lastSync": "2026-07-18T13:48:42.418Z"
+      },
+      {
+        "bankId": "nubank",
+        "name": "Nubank",
+        "connected": false,
+        "balance": 0,
+        "currency": "BRL",
+        "lastSync": null
+      },
+      {
+        "bankId": "itau",
+        "name": "Itaú Unibanco",
+        "connected": false,
+        "balance": 0,
+        "currency": "BRL",
+        "lastSync": null
+      },
+      {
+        "bankId": "bb",
+        "name": "Banco do Brasil",
+        "connected": false,
+        "balance": 0,
+        "currency": "BRL",
+        "lastSync": null
+      },
+      {
+        "bankId": "bradesco",
+        "name": "Bradesco",
+        "connected": false,
+        "balance": 0,
+        "currency": "BRL",
+        "lastSync": null
+      }
+    ],
+    "budgets": [
+      {
+        "category": "Alimentação",
+        "limit": 1200,
+        "currency": "BRL"
+      },
+      {
+        "category": "Lazer",
+        "limit": 500,
+        "currency": "BRL"
+      },
+      {
+        "category": "Transporte",
+        "limit": 400,
+        "currency": "BRL"
+      },
+      {
+        "category": "Moradia",
+        "limit": 2500,
+        "currency": "BRL"
+      }
+    ],
+    "transactions": [
+      {
+        "id": "t1",
+        "description": "Salário Mensal",
+        "amount": 5500,
+        "type": "income",
+        "category": "Salário",
+        "date": "2026-07-01",
+        "currency": "BRL",
+        "bankId": "manual"
+      },
+      {
+        "id": "t2",
+        "description": "Supermercado Pão de Açúcar",
+        "amount": 450,
+        "type": "expense",
+        "category": "Alimentação",
+        "date": "2026-07-05",
+        "currency": "BRL",
+        "bankId": "manual"
+      },
+      {
+        "id": "t3",
+        "description": "Aluguel Apartamento",
+        "amount": 2200,
+        "type": "expense",
+        "category": "Moradia",
+        "date": "2026-07-10",
+        "currency": "BRL",
+        "bankId": "manual"
+      },
+      {
+        "id": "t4",
+        "description": "Assinatura Netflix",
+        "amount": 14.99,
+        "type": "expense",
+        "category": "Lazer",
+        "date": "2026-07-12",
+        "currency": "USD",
+        "bankId": "manual"
+      },
+      {
+        "id": "t5",
+        "description": "Freelance Design UI",
+        "amount": 350,
+        "type": "income",
+        "category": "Salário",
+        "date": "2026-07-14",
+        "currency": "USD",
+        "bankId": "manual"
+      },
+      {
+        "id": "t6",
+        "description": "Uber Viagem Trabalho",
+        "amount": 32.5,
+        "type": "expense",
+        "category": "Transporte",
+        "date": "2026-07-15",
+        "currency": "BRL",
+        "bankId": "manual"
+      },
+      {
+        "id": "t7",
+        "description": "Jantar Restaurante Japonês",
+        "amount": 180,
+        "type": "expense",
+        "category": "Alimentação",
+        "date": "2026-07-16",
+        "currency": "BRL",
+        "bankId": "manual"
+      }
+    ],
+    "lastUpdated": 1784382522418
+  },
+  "SYNC-MDCQVX": {
+    "syncCode": "SYNC-MDCQVX",
+    "preferences": {
+      "baseCurrency": "BRL",
+      "userName": "Explorador"
+    },
+    "banks": [
+      {
+        "bankId": "manual",
+        "name": "Carteira / Manual",
+        "connected": true,
+        "balance": 450,
+        "currency": "BRL",
+        "lastSync": "2026-07-18T13:49:30.010Z"
+      },
+      {
+        "bankId": "nubank",
+        "name": "Nubank",
+        "connected": false,
+        "balance": 0,
+        "currency": "BRL",
+        "lastSync": null
+      },
+      {
+        "bankId": "itau",
+        "name": "Itaú Unibanco",
+        "connected": false,
+        "balance": 0,
+        "currency": "BRL",
+        "lastSync": null
+      },
+      {
+        "bankId": "bb",
+        "name": "Banco do Brasil",
+        "connected": false,
+        "balance": 0,
+        "currency": "BRL",
+        "lastSync": null
+      },
+      {
+        "bankId": "bradesco",
+        "name": "Bradesco",
+        "connected": false,
+        "balance": 0,
+        "currency": "BRL",
+        "lastSync": null
+      }
+    ],
+    "budgets": [
+      {
+        "category": "Alimentação",
+        "limit": 1200,
+        "currency": "BRL"
+      },
+      {
+        "category": "Lazer",
+        "limit": 500,
+        "currency": "BRL"
+      },
+      {
+        "category": "Transporte",
+        "limit": 400,
+        "currency": "BRL"
+      },
+      {
+        "category": "Moradia",
+        "limit": 2500,
+        "currency": "BRL"
+      }
+    ],
+    "transactions": [
+      {
+        "id": "t1",
+        "description": "Salário Mensal",
+        "amount": 5500,
+        "type": "income",
+        "category": "Salário",
+        "date": "2026-07-01",
+        "currency": "BRL",
+        "bankId": "manual"
+      },
+      {
+        "id": "t2",
+        "description": "Supermercado Pão de Açúcar",
+        "amount": 450,
+        "type": "expense",
+        "category": "Alimentação",
+        "date": "2026-07-05",
+        "currency": "BRL",
+        "bankId": "manual"
+      },
+      {
+        "id": "t3",
+        "description": "Aluguel Apartamento",
+        "amount": 2200,
+        "type": "expense",
+        "category": "Moradia",
+        "date": "2026-07-10",
+        "currency": "BRL",
+        "bankId": "manual"
+      },
+      {
+        "id": "t4",
+        "description": "Assinatura Netflix",
+        "amount": 14.99,
+        "type": "expense",
+        "category": "Lazer",
+        "date": "2026-07-12",
+        "currency": "USD",
+        "bankId": "manual"
+      },
+      {
+        "id": "t5",
+        "description": "Freelance Design UI",
+        "amount": 350,
+        "type": "income",
+        "category": "Salário",
+        "date": "2026-07-14",
+        "currency": "USD",
+        "bankId": "manual"
+      },
+      {
+        "id": "t6",
+        "description": "Uber Viagem Trabalho",
+        "amount": 32.5,
+        "type": "expense",
+        "category": "Transporte",
+        "date": "2026-07-15",
+        "currency": "BRL",
+        "bankId": "manual"
+      },
+      {
+        "id": "t7",
+        "description": "Jantar Restaurante Japonês",
+        "amount": 180,
+        "type": "expense",
+        "category": "Alimentação",
+        "date": "2026-07-16",
+        "currency": "BRL",
+        "bankId": "manual"
+      }
+    ],
+    "lastUpdated": 1784382570010
+  }
+}

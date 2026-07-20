@@ -1,0 +1,24 @@
+{
+  "short_name": "Finanças",
+  "name": "Controle Financeiro Premium",
+  "description": "Aplicativo de finanças completo com inteligência artificial, gráficos intuitivos, orçamentos, agenda de pagamentos e suporte multi-moedas.",
+  "start_url": "/",
+  "background_color": "#0f172a",
+  "theme_color": "#4f46e5",
+  "display": "standalone",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/10149/10149455.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any"
+    },
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/10149/10149455.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ]
+}

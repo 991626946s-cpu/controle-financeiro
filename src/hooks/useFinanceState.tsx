@@ -1,0 +1,948 @@
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { AppState, Transaction, BankConnection, Budget, AVAILABLE_CURRENCIES, CustomCategory, Subcategory, Investment, CreditCard, UserSession, UserPreferences } from '../types';
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = 'https://xkkdzlpjlvinfujtmlec.supabase.co'; // Use a SUA URL completa
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhra2R6bHBqbHZpbmZ1anRtbGVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ1NTYwMjcsImV4cCI6MjEwMDEzMjAyN30.2MMszf76REOPc3aO6l3Lv_bNQ4Vj65c-sw92G5Ct-Jc'; // Use a SUA chave completa que você copiou
+
+const cleanSupabaseUrl = (url: string): string => {
+  if (!url) return supabaseUrl;
+  const match = url.match(/(https?:\/\/[^\s\)\"\'\]\}]+)/);
+  if (match && match[1]) {
+    return match[1].trim();
+  }
+  return supabaseUrl;
+};
+
+const cleanSupabaseKey = (key: string): string => {
+  if (!key) return supabaseKey;
+  return key.replace(/[\[\]\(\)\'\"\s]/g, '').trim();
+};
+
+const activeSupabaseUrl = cleanSupabaseUrl((import.meta as any).env?.VITE_SUPABASE_URL);
+const activeSupabaseKey = cleanSupabaseKey((import.meta as any).env?.VITE_SUPABASE_ANON_KEY);
+
+export const supabase = createClient(activeSupabaseUrl, activeSupabaseKey);
+
+export const registerUser = async (email: string, password: string, fullName: string) => {
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+  });
+
+  if (error) throw error;
+  if (!data.user) throw new Error("Usuário não retornado pelo Supabase.");
+
+  const { error: dbError } = await supabase
+    .from('users')
+    .insert([{ id: data.user.id, email, full_name: fullName }]);
+
+  if (dbError) throw dbError;
+  
+  return data.user;
+};
+
+const LOCAL_STORAGE_CODE_KEY = 'finance_sync_code';
+
+// Helper to generate future yield payments for active investments
+export const generateInvestmentYields = (investment: Investment): Transaction[] => {
+  const yields: Transaction[] = [];
+  const start = new Date(investment.startDate);
+  const rate = investment.interestRate / 100;
+  const isMonthly = investment.interestType === 'monthly';
+  const monthlyRate = isMonthly ? rate : Math.pow(1 + rate, 1/12) - 1;
+
+  let currentVal = investment.amount;
+  
+  // Generate 12 months of future compound interest projections
+  for (let i = 1; i <= 12; i++) {
+    const yieldDate = new Date(start);
+    yieldDate.setMonth(start.getMonth() + i);
+    const dateStr = yieldDate.toISOString().split('T')[0];
+    const yieldAmount = currentVal * monthlyRate;
+    currentVal += yieldAmount;
+
+    yields.push({
+      id: `yield_${investment.id}_month_${i}`,
+      description: `Rendimento: ${investment.name} (${i}º mês)`,
+      amount: parseFloat(yieldAmount.toFixed(2)),
+      type: 'income',
+      category: 'Investimentos',
+      subcategory: 'Rendimentos',
+      date: dateStr,
+      currency: investment.currency,
+      bankId: investment.bankId,
+      paid: yieldDate <= new Date(), // automatically processed if date in past/today
+    });
+  }
+  return yields;
+};
+
+// Simple function to generate a 6-character random sync code
+function generateSyncCode(): string {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let result = 'SYNC-';
+  for (let i = 0; i < 6; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
+}
+
+export function useFinanceState() {
+  const [session, setSession] = useState<UserSession | null>(() => {
+    const saved = localStorage.getItem('finance_user_session');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        return null;
+      }
+    }
+    return null;
+  });
+
+  const [state, setState] = useState<AppState | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isSyncing, setIsSyncing] = useState<boolean>(false);
+  const lastUpdatedRef = useRef<number>(0);
+
+  // Load sync code from localStorage or generate a new one
+  const getOrCreateSyncCode = useCallback(() => {
+    let code = localStorage.getItem(LOCAL_STORAGE_CODE_KEY);
+    if (!code) {
+      code = generateSyncCode();
+      localStorage.setItem(LOCAL_STORAGE_CODE_KEY, code);
+    }
+    return code;
+  }, []);
+
+  const activeSyncCode = session ? session.user.syncCode : getOrCreateSyncCode();
+
+  // Fetch complete state from backend server
+  const fetchState = useCallback(async (code: string) => {
+    try {
+      setLoading(true);
+      const res = await fetch(`/api/sync/${code}`);
+      if (!res.ok) throw new Error('Não foi possível obter os dados do servidor');
+      const data: AppState = await res.json();
+      
+      const normalizedData: AppState = {
+        ...data,
+        customCategories: data.customCategories || [],
+        investments: data.investments || [],
+        creditCards: data.creditCards || [],
+      };
+      
+      setState(normalizedData);
+      lastUpdatedRef.current = data.lastUpdated;
+      setError(null);
+    } catch (err: any) {
+      console.error(err);
+      setError('Erro de conexão. Operando localmente temporariamente.');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Sync state to the server
+  const pushState = useCallback(async (updatedState: AppState) => {
+    if (!updatedState.syncCode) return;
+    setIsSyncing(true);
+    try {
+      const res = await fetch(`/api/sync/${updatedState.syncCode}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedState),
+      });
+      if (res.ok) {
+        const result = await res.json();
+        lastUpdatedRef.current = result.lastUpdated;
+      }
+    } catch (err) {
+      console.error('Erro de sincronização em segundo plano:', err);
+    } finally {
+      setIsSyncing(false);
+    }
+  }, []);
+
+  // Initialize state
+  useEffect(() => {
+    fetchState(activeSyncCode);
+  }, [activeSyncCode, fetchState]);
+
+  // Handle local state updates + background sync triggers
+  const updateState = useCallback((updater: (prev: AppState) => AppState) => {
+    setState((prev) => {
+      if (!prev) return null;
+      const safePrev: AppState = {
+        ...prev,
+        customCategories: prev.customCategories || [],
+        investments: prev.investments || [],
+        creditCards: prev.creditCards || [],
+      };
+      const updated = updater(safePrev);
+      const finalState = {
+        ...updated,
+        lastUpdated: Date.now(),
+      };
+      // Push to server asynchronously
+      pushState(finalState);
+      return finalState;
+    });
+  }, [pushState]);
+
+  // 1. Transactions CRUD
+  const addTransaction = useCallback((tx: Omit<Transaction, 'id'>) => {
+    const newTx: Transaction = {
+      ...tx,
+      id: 'tx_' + Math.random().toString(36).substr(2, 9),
+    };
+    updateState((prev) => ({
+      ...prev,
+      transactions: [newTx, ...prev.transactions],
+    }));
+  }, [updateState]);
+
+  const deleteTransaction = useCallback((id: string) => {
+    updateState((prev) => ({
+      ...prev,
+      transactions: prev.transactions.filter((t) => t.id !== id),
+    }));
+  }, [updateState]);
+
+  const updateTransaction = useCallback((updatedTx: Transaction) => {
+    updateState((prev) => ({
+      ...prev,
+      transactions: prev.transactions.map((t) => (t.id === updatedTx.id ? updatedTx : t)),
+    }));
+  }, [updateState]);
+
+  const setTransactions = useCallback((transactions: Transaction[]) => {
+    setState((prev) => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        transactions,
+      };
+    });
+  }, []);
+
+  // 2. Budget Updates
+  const updateBudget = useCallback((category: string, limit: number) => {
+    updateState((prev) => {
+      const exists = prev.budgets.some((b) => b.category === category);
+      const updatedBudgets = exists
+        ? prev.budgets.map((b) => (b.category === category ? { ...b, limit } : b))
+        : [...prev.budgets, { category, limit, currency: prev.preferences.baseCurrency }];
+      return { ...prev, budgets: updatedBudgets };
+    });
+  }, [updateState]);
+
+  // 3. Bank Connections
+  const connectBank = useCallback((bankId: 'nubank' | 'itau' | 'bb' | 'bradesco', balance: number, mockFeeds: Omit<Transaction, 'id' | 'bankId'>[]) => {
+    updateState((prev) => {
+      // Create new transaction IDs for the feed
+      const newTransactions: Transaction[] = mockFeeds.map((tx) => ({
+        ...tx,
+        id: 'tx_bank_' + Math.random().toString(36).substr(2, 9),
+        bankId,
+      }));
+
+      const updatedBanks = prev.banks.map((bank) =>
+        bank.bankId === bankId
+          ? { ...bank, connected: true, balance, lastSync: new Date().toISOString() }
+          : bank
+      );
+
+      return {
+        ...prev,
+        banks: updatedBanks,
+        transactions: [...newTransactions, ...prev.transactions],
+      };
+    });
+  }, [updateState]);
+
+  const disconnectBank = useCallback((bankId: 'nubank' | 'itau' | 'bb' | 'bradesco') => {
+    updateState((prev) => {
+      const updatedBanks = prev.banks.map((bank) =>
+        bank.bankId === bankId
+          ? { ...bank, connected: false, balance: 0, lastSync: null }
+          : bank
+      );
+
+      // Optionally filter out transactions associated with this bank, or keep them.
+      // Let's filter them out to simulate clean disconnection.
+      const updatedTransactions = prev.transactions.filter((t) => t.bankId !== bankId);
+
+      return {
+        ...prev,
+        banks: updatedBanks,
+        transactions: updatedTransactions,
+      };
+    });
+  }, [updateState]);
+
+  // Update bank balance directly (adjust balance)
+  const updateBankBalance = useCallback((bankId: string, balance: number) => {
+    updateState((prev) => {
+      const updatedBanks = prev.banks.map((bank) =>
+        bank.bankId === bankId
+          ? { ...bank, balance, lastSync: new Date().toISOString() }
+          : bank
+      );
+      return {
+        ...prev,
+        banks: updatedBanks,
+      };
+    });
+  }, [updateState]);
+
+  // 4. Custom Categories and Subcategories
+  const addCustomCategory = useCallback((label: string, color: string, emoji: string) => {
+    updateState((prev) => {
+      const customCategories = prev.customCategories || [];
+      const newCat: CustomCategory = {
+        id: label,
+        label,
+        color,
+        icon: 'Layers',
+        emoji,
+        subcategories: [],
+      };
+      return {
+        ...prev,
+        customCategories: [...customCategories, newCat],
+      };
+    });
+  }, [updateState]);
+
+  const addSubcategory = useCallback((categoryId: string, label: string) => {
+    updateState((prev) => {
+      const customCategories = prev.customCategories || [];
+      let updatedCats = [...customCategories];
+      
+      const existsInCustom = customCategories.some((cat) => cat.id === categoryId);
+      
+      if (!existsInCustom) {
+        // Find it in static system categories
+        const systemCat = CATEGORIES.find((c) => c.id === categoryId);
+        if (systemCat) {
+          const newCat: CustomCategory = {
+            id: systemCat.id,
+            label: systemCat.label,
+            color: systemCat.color,
+            icon: systemCat.icon || 'Layers',
+            emoji: systemCat.emoji || '📦',
+            subcategories: [],
+          };
+          updatedCats.push(newCat);
+        }
+      }
+      
+      updatedCats = updatedCats.map((cat) => {
+        if (cat.id === categoryId) {
+          const subs = cat.subcategories || [];
+          if (subs.some((s) => s.label.toLowerCase() === label.toLowerCase())) {
+            return cat;
+          }
+          const newSub: Subcategory = {
+            id: label,
+            label,
+          };
+          return {
+            ...cat,
+            subcategories: [...subs, newSub],
+          };
+        }
+        return cat;
+      });
+      
+      return {
+        ...prev,
+        customCategories: updatedCats,
+      };
+    });
+  }, [updateState]);
+
+  const editCategory = useCallback((categoryId: string, newLabel: string, newColor: string, newEmoji: string) => {
+    updateState((prev) => {
+      const customCategories = prev.customCategories || [];
+      const systemCat = CATEGORIES.find((c) => c.id === categoryId);
+      
+      let baseCat = customCategories.find((c) => c.id === categoryId);
+      if (!baseCat && systemCat) {
+        baseCat = {
+          id: systemCat.id,
+          label: systemCat.label,
+          color: systemCat.color,
+          icon: systemCat.icon || 'Layers',
+          emoji: systemCat.emoji || '📦',
+          subcategories: [],
+        };
+      }
+      
+      if (!baseCat) return prev;
+      
+      const oldId = baseCat.id;
+      const newId = newLabel.trim();
+      
+      const updatedCat: CustomCategory = {
+        ...baseCat,
+        id: newId,
+        label: newLabel.trim(),
+        color: newColor,
+        emoji: newEmoji,
+      };
+      
+      let updatedCats = customCategories.filter((c) => c.id !== oldId);
+      updatedCats.push(updatedCat);
+      
+      let updatedTransactions = prev.transactions;
+      if (oldId !== newId) {
+        updatedTransactions = prev.transactions.map((t) => {
+          if (t.category === oldId) {
+            return { ...t, category: newId };
+          }
+          return t;
+        });
+      }
+      
+      let updatedBudgets = prev.budgets;
+      if (oldId !== newId) {
+        updatedBudgets = prev.budgets.map((b) => {
+          if (b.category === oldId) {
+            return { ...b, category: newId };
+          }
+          return b;
+        });
+      }
+      
+      return {
+        ...prev,
+        customCategories: updatedCats,
+        transactions: updatedTransactions,
+        budgets: updatedBudgets,
+      };
+    });
+  }, [updateState]);
+
+  const deleteCategory = useCallback((categoryId: string) => {
+    updateState((prev) => {
+      const customCategories = prev.customCategories || [];
+      const updatedCats = customCategories.filter((c) => c.id !== categoryId);
+      
+      const updatedTransactions = prev.transactions.map((t) => {
+        if (t.category === categoryId) {
+          return { ...t, category: 'Outros' };
+        }
+        return t;
+      });
+      
+      const updatedBudgets = prev.budgets.filter((b) => b.category !== categoryId);
+      
+      return {
+        ...prev,
+        customCategories: updatedCats,
+        transactions: updatedTransactions,
+        budgets: updatedBudgets,
+      };
+    });
+  }, [updateState]);
+
+  const editSubcategory = useCallback((categoryId: string, oldSubId: string, newSubLabel: string) => {
+    updateState((prev) => {
+      const customCategories = prev.customCategories || [];
+      const systemCat = CATEGORIES.find((c) => c.id === categoryId);
+      
+      let baseCat = customCategories.find((c) => c.id === categoryId);
+      if (!baseCat && systemCat) {
+        baseCat = {
+          id: systemCat.id,
+          label: systemCat.label,
+          color: systemCat.color,
+          icon: systemCat.icon || 'Layers',
+          emoji: systemCat.emoji || '📦',
+          subcategories: [],
+        };
+      }
+      
+      if (!baseCat) return prev;
+      
+      const updatedSubs = (baseCat.subcategories || []).map((sub) => {
+        if (sub.id === oldSubId) {
+          return {
+            id: newSubLabel.trim(),
+            label: newSubLabel.trim(),
+          };
+        }
+        return sub;
+      });
+      
+      const updatedCats = [
+        ...customCategories.filter((c) => c.id !== categoryId),
+        { ...baseCat, subcategories: updatedSubs }
+      ];
+      
+      const updatedTransactions = prev.transactions.map((t) => {
+        if (t.category === categoryId && t.subcategory === oldSubId) {
+          return { ...t, subcategory: newSubLabel.trim() };
+        }
+        return t;
+      });
+      
+      return {
+        ...prev,
+        customCategories: updatedCats,
+        transactions: updatedTransactions,
+      };
+    });
+  }, [updateState]);
+
+  const deleteSubcategory = useCallback((categoryId: string, subId: string) => {
+    updateState((prev) => {
+      const customCategories = prev.customCategories || [];
+      const baseCat = customCategories.find((c) => c.id === categoryId);
+      if (!baseCat) return prev;
+      
+      const updatedSubs = (baseCat.subcategories || []).filter((sub) => sub.id !== subId);
+      
+      const updatedCats = customCategories.map((c) => {
+        if (c.id === categoryId) {
+          return { ...c, subcategories: updatedSubs };
+        }
+        return c;
+      });
+      
+      const updatedTransactions = prev.transactions.map((t) => {
+        if (t.category === categoryId && t.subcategory === subId) {
+          const { subcategory: _, ...rest } = t;
+          return rest;
+        }
+        return t;
+      });
+      
+      return {
+        ...prev,
+        customCategories: updatedCats,
+        transactions: updatedTransactions,
+      };
+    });
+  }, [updateState]);
+
+  // 5. Custom Banks Management
+  const addCustomBank = useCallback((name: string, balance: number, currency: string) => {
+    updateState((prev) => {
+      const newBank: BankConnection = {
+        bankId: 'bank_' + Math.random().toString(36).substr(2, 9),
+        name,
+        connected: true,
+        balance,
+        currency,
+        lastSync: new Date().toISOString(),
+      };
+      return {
+        ...prev,
+        banks: [...prev.banks, newBank],
+      };
+    });
+  }, [updateState]);
+
+  // 6. Active Investments Management with Automatic Future Yield Generations
+  const addInvestment = useCallback((inv: Omit<Investment, 'id'> & { id?: string }) => {
+    updateState((prev) => {
+      const id = inv.id || 'inv_' + Math.random().toString(36).substr(2, 9);
+      const newInv: Investment = { ...inv, id };
+      const yields = generateInvestmentYields(newInv);
+      const currentInvestments = prev.investments || [];
+      return {
+        ...prev,
+        investments: [...currentInvestments, newInv],
+        transactions: [...yields, ...prev.transactions],
+      };
+    });
+  }, [updateState]);
+
+  const deleteInvestment = useCallback((id: string) => {
+    updateState((prev) => {
+      const currentInvestments = prev.investments || [];
+      const updatedTransactions = prev.transactions.filter(
+        (t) => !t.id.startsWith(`yield_${id}_`)
+      );
+      return {
+        ...prev,
+        investments: currentInvestments.filter((i) => i.id !== id),
+        transactions: updatedTransactions,
+      };
+    });
+  }, [updateState]);
+
+  const updateInvestment = useCallback((updated: Investment) => {
+    updateState((prev) => {
+      const currentInvestments = prev.investments || [];
+      const filteredTransactions = prev.transactions.filter(
+        (t) => !t.id.startsWith(`yield_${updated.id}_`)
+      );
+      const yields = generateInvestmentYields(updated);
+      return {
+        ...prev,
+        investments: currentInvestments.map((i) => (i.id === updated.id ? updated : i)),
+        transactions: [...yields, ...filteredTransactions],
+      };
+    });
+  }, [updateState]);
+
+  // 7. Preferences
+  const setBaseCurrency = useCallback((currency: string) => {
+    updateState((prev) => ({
+      ...prev,
+      preferences: { ...prev.preferences, baseCurrency: currency },
+    }));
+  }, [updateState]);
+
+  const setUserName = useCallback((userName: string) => {
+    updateState((prev) => ({
+      ...prev,
+      preferences: { ...prev.preferences, userName },
+    }));
+  }, [updateState]);
+
+  const setAppLockPin = useCallback((pin?: string) => {
+    updateState((prev) => ({
+      ...prev,
+      preferences: { ...prev.preferences, appLockPin: pin || undefined },
+    }));
+  }, [updateState]);
+
+  const updatePreferences = useCallback((updatedPrefs: Partial<UserPreferences>) => {
+    updateState((prev) => ({
+      ...prev,
+      preferences: { ...prev.preferences, ...updatedPrefs },
+    }));
+  }, [updateState]);
+
+  // 5. External Sync code change (for pairing multiple devices)
+  const syncWithCode = useCallback(async (newCode: string) => {
+    const code = newCode.trim().toUpperCase();
+    if (!code) return false;
+    try {
+      setLoading(true);
+      const res = await fetch(`/api/sync/${code}`);
+      if (!res.ok) throw new Error('Código de sincronização inválido');
+      const data: AppState = await res.json();
+      setState(data);
+      localStorage.setItem(LOCAL_STORAGE_CODE_KEY, code);
+      lastUpdatedRef.current = data.lastUpdated;
+      setError(null);
+      setLoading(false);
+      return true;
+    } catch (err: any) {
+      console.error(err);
+      setError('Falha ao sincronizar com o código fornecido.');
+      setLoading(false);
+      return false;
+    }
+  }, []);
+
+  // Currency Converter Utility Helper
+  const convertAmount = useCallback((amount: number, fromCurrency: string, toCurrency: string) => {
+    if (fromCurrency === toCurrency) return amount;
+    const fromRate = AVAILABLE_CURRENCIES.find((c) => c.code === fromCurrency)?.rateToUSD || 1;
+    const toRate = AVAILABLE_CURRENCIES.find((c) => c.code === toCurrency)?.rateToUSD || 1;
+    // convert fromCurrency to USD then to toCurrency
+    const amountInUSD = amount * fromRate;
+    return amountInUSD / toRate;
+  }, []);
+
+  // Real-time synchronization check (poll the server every 10 seconds to sync changes from other devices)
+  useEffect(() => {
+    if (!state?.syncCode) return;
+
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/sync/${state.syncCode}`);
+        if (res.ok) {
+          const remoteState: AppState = await res.json();
+          // Only update local state if remote state is newer
+          if (remoteState.lastUpdated > lastUpdatedRef.current) {
+            setState(remoteState);
+            lastUpdatedRef.current = remoteState.lastUpdated;
+          }
+        }
+      } catch (err) {
+        console.warn('Erro ao checar atualizações em tempo real:', err);
+      }
+    }, 10000);
+
+    return () => clearInterval(interval);
+  }, [state?.syncCode]);
+
+  // 7. Credit Cards Management
+  const addCreditCard = useCallback((card: Omit<CreditCard, 'id'>) => {
+    updateState((prev) => {
+      const id = 'card_' + Math.random().toString(36).substr(2, 9);
+      const newCard: CreditCard = { ...card, id };
+      const currentCards = prev.creditCards || [];
+      return {
+        ...prev,
+        creditCards: [...currentCards, newCard],
+      };
+    });
+  }, [updateState]);
+
+  const deleteCreditCard = useCallback((id: string) => {
+    updateState((prev) => {
+      const currentCards = prev.creditCards || [];
+      return {
+        ...prev,
+        creditCards: currentCards.filter((c) => c.id !== id),
+      };
+    });
+  }, [updateState]);
+
+  const updateCreditCard = useCallback((updatedCard: CreditCard) => {
+    updateState((prev) => {
+      const currentCards = prev.creditCards || [];
+      return {
+        ...prev,
+        creditCards: currentCards.map((c) => (c.id === updatedCard.id ? updatedCard : c)),
+      };
+    });
+  }, [updateState]);
+
+  // 8. User Auth & Session Management
+  const registerUserInternal = useCallback(async (nameOrEmail: string, emailOrName: string, password: string, baseCurrency: string = 'BRL') => {
+    try {
+      let email = emailOrName;
+      let name = nameOrEmail;
+      // If the first argument looks like an email and second looks like name, swap them
+      if (nameOrEmail.includes('@') && !emailOrName.includes('@')) {
+        email = nameOrEmail;
+        name = emailOrName;
+      }
+
+      // 1. Sign up user via Supabase Auth
+      const { data, error } = await supabase.auth.signUp({
+        email: email.trim(),
+        password: password,
+      });
+
+      if (error) throw error;
+      if (!data.user) throw new Error("Usuário não retornado pelo Supabase.");
+
+      // 2. Insert user record into Supabase "users" table (optional database table)
+      try {
+        const { error: dbError } = await supabase
+          .from('users')
+          .insert([{ id: data.user.id, email: email.trim(), full_name: name.trim() }]);
+        if (dbError) {
+          console.warn("Database insert warning (table might not exist yet):", dbError.message);
+        }
+      } catch (dbErr: any) {
+        console.warn("Database insert error:", dbErr.message);
+      }
+
+      // 3. Sincroniza a sessão local / cria sessão no backend Express do applet
+      const res = await fetch('/api/auth/supabase', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: email.trim().toLowerCase(),
+          name: name.trim(),
+          supabaseUid: data.user.id,
+          supabaseProvider: 'supabase',
+          baseCurrency
+        }),
+      });
+      const resData = await res.json();
+      if (!res.ok || !resData.success) {
+        throw new Error(resData.error || 'Erro ao sincronizar sessão Supabase no backend.');
+      }
+      localStorage.setItem('finance_user_session', JSON.stringify(resData));
+      setSession(resData);
+      return { success: true };
+    } catch (err: any) {
+      console.error('Erro de Registro Supabase:', err);
+      // Fallback if keys are not fully valid or network fails, to keep app functional in demo
+      if (err.message?.includes('invalid API key') || err.message?.includes('FetchError') || err.message?.includes('Failed to fetch') || err.message?.includes('ApiKey')) {
+        const res = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: nameOrEmail.trim(), email: emailOrName.trim().toLowerCase(), password, baseCurrency }),
+        });
+        const resData = await res.json();
+        if (!res.ok || !resData.success) {
+          throw new Error(resData.error || 'Erro ao registrar usuário');
+        }
+        localStorage.setItem('finance_user_session', JSON.stringify(resData));
+        setSession(resData);
+        return { success: true };
+      }
+      return { success: false, error: err.message || 'Erro ao registrar usuário com Supabase.' };
+    }
+  }, []);
+
+  const loginUser = useCallback(async (email: string, password: string) => {
+    try {
+      // 1. Autentica o usuário no Supabase Auth
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
+
+      if (error) throw error;
+      if (!data.user) throw new Error("Login falhou.");
+
+      // 2. Sincroniza a sessão no backend Express do applet
+      const res = await fetch('/api/auth/supabase', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: data.user.email || email.trim().toLowerCase(),
+          name: email.trim().split('@')[0],
+          supabaseUid: data.user.id,
+          supabaseProvider: 'supabase'
+        }),
+      });
+      const resData = await res.json();
+      if (!res.ok || !resData.success) {
+        throw new Error(resData.error || 'Erro ao sincronizar sessão Supabase no login.');
+      }
+      localStorage.setItem('finance_user_session', JSON.stringify(resData));
+      setSession(resData);
+      return { success: true };
+    } catch (err: any) {
+      console.error('Erro de Login Supabase:', err);
+      // Fallback for simulation/demo if keys are defaults
+      if (err.message?.includes('invalid API key') || err.message?.includes('FetchError') || err.message?.includes('Failed to fetch') || err.message?.includes('ApiKey')) {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: email.trim().toLowerCase(), password }),
+        });
+        const resData = await res.json();
+        if (!res.ok || !resData.success) {
+          throw new Error(resData.error || 'E-mail ou senha incorretos');
+        }
+        localStorage.setItem('finance_user_session', JSON.stringify(resData));
+        setSession(resData);
+        return { success: true };
+      }
+      return { success: false, error: err.message || 'E-mail ou senha incorretos.' };
+    }
+  }, []);
+
+  const loginWithSupabase = useCallback(async (email: string, name?: string, supabaseUid?: string, supabaseProvider?: string, baseCurrency?: string) => {
+    try {
+      const res = await fetch('/api/auth/supabase', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, name, supabaseUid, supabaseProvider, baseCurrency }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Erro na autenticação Supabase');
+      }
+      localStorage.setItem('finance_user_session', JSON.stringify(data));
+      setSession(data);
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: err.message };
+    }
+  }, []);
+
+  const logoutUser = useCallback(() => {
+    localStorage.removeItem('finance_user_session');
+    setSession(null);
+  }, []);
+
+  const updatePassword = useCallback(async (currentPassword: string, newPassword: string) => {
+    if (!session) return { success: false, error: 'Sessão encerrada' };
+    try {
+      const res = await fetch('/api/auth/update-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: session.user.email,
+          currentPassword,
+          newPassword
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Erro ao atualizar senha');
+      }
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: err.message };
+    }
+  }, [session]);
+
+  // Export to CSV Function
+  const exportToCSV = useCallback(() => {
+    if (!state) return;
+    const headers = ['Data', 'Descrição', 'Valor', 'Moeda', 'Tipo', 'Categoria', 'Banco Integrado'];
+    const rows = state.transactions.map((t) => [
+      t.date,
+      `"${t.description.replace(/"/g, '""')}"`,
+      t.amount,
+      t.currency,
+      t.type === 'income' ? 'Receita' : 'Despesa',
+      t.category,
+      t.bankId ? state.banks.find((b) => b.bankId === t.bankId)?.name || t.bankId : 'Manual',
+    ]);
+
+    const csvContent = '\uFEFF' + [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `relatorio_financeiro_${state.syncCode}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }, [state]);
+
+  return {
+    state,
+    loading,
+    error,
+    isSyncing,
+    session,
+    registerUser: registerUserInternal,
+    loginUser,
+    loginWithSupabase,
+    logoutUser,
+    updatePassword,
+    addTransaction,
+    deleteTransaction,
+    updateTransaction,
+    setTransactions,
+    updateBudget,
+    connectBank,
+    disconnectBank,
+    updateBankBalance,
+    addCustomCategory,
+    addSubcategory,
+    editCategory,
+    deleteCategory,
+    editSubcategory,
+    deleteSubcategory,
+    addCustomBank,
+    addInvestment,
+    deleteInvestment,
+    updateInvestment,
+    addCreditCard,
+    deleteCreditCard,
+    updateCreditCard,
+    setBaseCurrency,
+    setUserName,
+    setAppLockPin,
+    updatePreferences,
+    syncWithCode,
+    convertAmount,
+    exportToCSV,
+    forceFetch: () => state && fetchState(state.syncCode),
+  };
+}
