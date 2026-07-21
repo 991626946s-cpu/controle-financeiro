@@ -1,850 +1,413 @@
 import React, { useState, useEffect } from 'react';
-import { useFinanceState } from './hooks/useFinanceState';
-import ErrorBoundary from './components/ErrorBoundary';
-import Dashboard from './components/Dashboard';
-import TransactionsList from './components/TransactionsList';
-import BankIntegration from './components/BankIntegration';
-import BudgetsManager from './components/BudgetsManager';
-import AIInsights from './components/AIInsights';
-import SyncSettings from './components/SyncSettings';
-import ForecastAndHistory from './components/ForecastAndHistory';
-import InvestmentsManager from './components/InvestmentsManager';
-import SmartSecurityIntelligence from './components/SmartSecurityIntelligence';
-import LockScreen from './components/LockScreen';
-import CreditCardsManager from './components/CreditCardsManager';
-import UserProfile from './components/UserProfile';
-import AgendaManager from './components/AgendaManager';
-import AndroidPwaInstaller from './components/AndroidPwaInstaller';
-import { getUserTransactions } from './services/financeService';
-import { supabase } from './hooks/useFinanceState';
-import {
-  LayoutDashboard,
-  Receipt,
-  Landmark,
-  Sliders,
-  Brain,
-  Settings,
-  RefreshCw,
-  CheckCircle2,
-  AlertCircle,
-  TrendingUp,
-  LineChart,
-  Briefcase,
-  CreditCard,
-  User,
-  Calendar,
-  Smartphone,
+import { 
+  LayoutDashboard, 
+  Wallet, 
+  CreditCard, 
+  TrendingUp, 
+  Plus, 
+  ArrowUpRight, 
+  ArrowDownRight, 
   Menu,
-  ChevronDown,
-  ChevronUp,
+  X,
+  FileText,
+  LogOut
 } from 'lucide-react';
+import { supabase } from './supabaseClient';
 
 export default function App() {
-  const {
-    state,
-    loading,
-    error,
-    isSyncing,
-    addTransaction,
-    deleteTransaction,
-    updateTransaction,
-    updateBudget,
-    connectBank,
-    disconnectBank,
-    updateBankBalance,
-    addCustomCategory,
-    addSubcategory,
-    addCustomBank,
-    addInvestment,
-    deleteInvestment,
-    updateInvestment,
-    addCreditCard,
-    deleteCreditCard,
-    updateCreditCard,
-    setBaseCurrency,
-    setUserName,
-    setAppLockPin,
-    updatePreferences,
-    syncWithCode,
-    convertAmount,
-    exportToCSV,
-    session,
-    registerUser,
-    loginUser,
-    loginWithSupabase,
-    logoutUser,
-    updatePassword,
-    setTransactions,
-  } = useFinanceState();
-
-  const [activeTab, setActiveTab] = useState('dashboard');
-  const [isUnlocked, setIsUnlocked] = useState(false);
-  const [isTxMenuOpen, setIsTxMenuOpen] = useState(false);
-  const [isMainMenuOpen, setIsMainMenuOpen] = useState(false);
-
-  // Supabase auth states
-  const [supabaseUser, setSupabaseUser] = useState<any>(null);
-  const [authLoading, setAuthLoading] = useState(true);
-  const [isLoggingIn, setIsLoggingIn] = useState(false);
-  const [loginError, setLoginError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'transactions' | 'cards' | 'investments'>('dashboard');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  
+  const [transactions, setTransactions] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newTitle, setNewTitle] = useState('');
+  const [newAmount, setNewAmount] = useState('');
+  const [newType, setNewType] = useState<'income' | 'expense'>('expense');
+  const [newCategory, setNewCategory] = useState('Geral');
 
   useEffect(() => {
-    let isMounted = true;
+    fetchTransactions();
+  }, []);
 
-    // 1. Initial load / sync from custom session state
-    if (session?.user) {
-      if (isMounted) {
-        setSupabaseUser({
-          uid: session.user.supabaseUid,
-          displayName: session.user.name,
-          email: session.user.email
-        });
-        setAuthLoading(false);
-      }
-    } else {
-      if (isMounted) {
-        setSupabaseUser(null);
-        setAuthLoading(false);
-      }
-    }
-
-    // 2. Listen to Supabase Auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, sbSession) => {
-      const user = sbSession?.user || null;
-      if (user) {
-        if (isMounted) {
-          setSupabaseUser({
-            uid: user.id,
-            displayName: user.user_metadata?.full_name || user.email?.split('@')[0] || 'Usuário Supabase',
-            email: user.email
-          });
-        }
-
-        // Restore / fetch data for the user if session is missing or doesn't match
-        const savedSession = localStorage.getItem('finance_user_session');
-        let sessionUid = null;
-        if (savedSession) {
-          try {
-            sessionUid = JSON.parse(savedSession).user?.supabaseUid;
-          } catch (e) {
-            console.error(e);
-          }
-        }
-        if (!sessionUid || sessionUid !== user.id) {
-          if (loginWithSupabase) {
-            await loginWithSupabase(
-              user.email || 'google.user@gmail.com',
-              user.user_metadata?.full_name || user.email?.split('@')[0] || 'Usuário Supabase',
-              user.id,
-              'supabase',
-              state?.preferences?.baseCurrency || 'BRL'
-            );
-          }
-        }
-
-        // Carregar transações reais do Supabase para o usuário autenticado
-        try {
-          const dbTransactions = await getUserTransactions();
-          if (isMounted && dbTransactions && dbTransactions.length > 0) {
-            setTransactions(dbTransactions);
-          }
-        } catch (err) {
-          console.error("Erro ao obter transações do Supabase:", err);
-        }
-
-        if (isMounted) {
-          setAuthLoading(false);
-        }
-      } else {
-        // Fallback for custom session if Supabase has no active user
-        const savedSession = localStorage.getItem('finance_user_session');
-        if (savedSession) {
-          try {
-            const parsed = JSON.parse(savedSession);
-            if (parsed.user?.supabaseUid && isMounted) {
-              setSupabaseUser({
-                uid: parsed.user.supabaseUid,
-                displayName: parsed.user.name,
-                email: parsed.user.email
-              });
-            }
-          } catch (e) {
-            console.error(e);
-          }
-
-          getUserTransactions()
-            .then((dbTransactions) => {
-              if (isMounted && dbTransactions && dbTransactions.length > 0) {
-                setTransactions(dbTransactions);
-              }
-            })
-            .catch((err) => console.error("Erro ao obter transações em modo simulado:", err));
-        } else {
-          if (isMounted) {
-            setSupabaseUser(null);
-            setTransactions([]);
-          }
-        }
-        if (isMounted) {
-          setAuthLoading(false);
-        }
-      }
-    });
-
-    return () => {
-      isMounted = false;
-      subscription.unsubscribe();
-    };
-  }, [session, setTransactions, loginWithSupabase, state?.preferences?.baseCurrency]);
-
-  const handleGoogleLogin = async () => {
-    setLoginError(null);
-    setIsLoggingIn(true);
+  async function fetchTransactions() {
     try {
-      // Sign in with Supabase Google OAuth Provider
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-      });
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('transactions')
+        .select('*')
+        .order('date', { ascending: false });
+
       if (error) throw error;
-    } catch (err: any) {
-      console.error(err);
-      setLoginError(err.message || 'Erro ao autenticar com o Google.');
+      if (data) setTransactions(data);
+    } catch (error: any) {
+      console.error('Erro ao buscar transações:', error.message);
     } finally {
-      setIsLoggingIn(false);
+      setLoading(false);
     }
-  };
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    setSupabaseUser(null);
-    logoutUser();
-  };
-
-  if (loading || authLoading) {
-    return (
-      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
-        <div className="relative">
-          <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
-        </div>
-        <p className="mt-4 text-sm text-gray-500 font-sans font-medium animate-pulse">
-          Carregando suas finanças sincronizadas...
-        </p>
-      </div>
-    );
   }
 
-  if (error && !state) {
-    return (
-      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
-        <div className="bg-white p-8 rounded-2xl border border-gray-150 max-w-md w-full shadow-md text-center space-y-4">
-          <div className="w-12 h-12 bg-rose-50 border border-rose-100 rounded-full flex items-center justify-center text-rose-500 mx-auto">
-            <AlertCircle className="w-6 h-6" />
-          </div>
-          <div>
-            <h3 className="text-lg font-bold text-gray-900">Erro de Carregamento</h3>
-            <p className="text-sm text-gray-500 mt-1">
-              {error}. Verifique se o servidor backend está rodando de forma adequada.
-            </p>
-          </div>
-          <button
-            onClick={() => window.location.reload()}
-            className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl text-sm transition cursor-pointer"
-          >
-            Recarregar Página
-          </button>
-        </div>
-      </div>
-    );
+  async function handleAddTransaction(e: React.FormEvent) {
+    e.preventDefault();
+    if (!newTitle || !newAmount) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('transactions')
+        .insert([
+          {
+            title: newTitle,
+            amount: parseFloat(newAmount),
+            type: newType,
+            category: newCategory,
+            date: new Date().toISOString().split('T')[0]
+          }
+        ])
+        .select();
+
+      if (error) throw error;
+
+      if (data) {
+        setTransactions([data[0], ...transactions]);
+        setNewTitle('');
+        setNewAmount('');
+        setIsModalOpen(false);
+      }
+    } catch (error: any) {
+      console.error('Erro ao salvar transação:', error.message);
+      alert('Erro ao salvar transação no banco de dados: ' + error.message);
+    }
   }
 
-  if (!state) {
-    return (
-      <div className="min-h-screen flex items-center justify-center text-slate-500 font-sans">
-         <div className="animate-spin mr-2">◌</div> Sincronizando...
-      </div>
-    );
-  }
+  const totalIncome = transactions
+    .filter(t => t.type === 'income')
+    .reduce((acc, t) => acc + Number(t.amount), 0);
 
-  if (!supabaseUser) {
-    return (
-      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 antialiased">
-        <div className="w-full max-w-md">
-          <div className="text-center mb-6">
-            <div className="inline-flex p-3.5 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-2xl text-white shadow-xs items-center justify-center mb-3">
-              <TrendingUp className="w-8 h-8" />
-            </div>
-            <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 font-display">
-              Finança Ativa
-            </h1>
-            <p className="text-sm text-slate-500 mt-1 max-w-xs mx-auto">
-              Controle inteligente de investimentos e orçamento sincronizado na nuvem.
-            </p>
-          </div>
+  const totalExpense = transactions
+    .filter(t => t.type === 'expense')
+    .reduce((acc, t) => acc + Number(t.amount), 0);
 
-          <UserProfile
-            state={state}
-            session={session}
-            registerUser={registerUser}
-            loginUser={loginUser}
-            loginWithSupabase={loginWithSupabase}
-            logoutUser={handleLogout}
-            updatePassword={updatePassword}
-            updatePreferences={updatePreferences}
-          />
-        </div>
-      </div>
-    );
-  }
-
-  if (state.preferences.appLockPin && !isUnlocked) {
-    return (
-      <LockScreen
-        correctPin={state.preferences.appLockPin}
-        onUnlock={() => setIsUnlocked(true)}
-        userName={state.preferences.userName}
-        biometricsEnabled={state.preferences.appLockBiometrics}
-        shuffleKeypad={state.preferences.appLockShuffle}
-      />
-    );
-  }
+  const currentBalance = totalIncome - totalExpense;
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col antialiased">
-      {/* 1. Header Navigation Bar */}
-      <header className="bg-white border-b border-slate-100 shrink-0 shadow-xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16 items-center">
-            {/* Logo area */}
-            <div className="flex items-center gap-2.5">
-              <div className="p-2.5 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-2xl text-white shadow-xs flex items-center justify-center">
-                <TrendingUp className="w-5 h-5" />
-              </div>
-              <span className="font-extrabold text-lg tracking-tight text-slate-900 font-display">
-                Finança Ativa
-              </span>
+    <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row font-sans text-slate-900">
+      
+      {/* Sidebar Desktop */}
+      <aside className="hidden md:flex flex-col w-64 bg-white border-r border-slate-200 p-6 sticky top-0 h-screen justify-between">
+        <div>
+          <div className="flex items-center gap-3 px-2 mb-8">
+            <div className="w-10 h-10 rounded-xl bg-emerald-600 flex items-center justify-center text-white shadow-md shadow-emerald-600/30">
+              <Wallet size={22} />
             </div>
-
-            {/* Sync status widget */}
-            <div className="flex items-center gap-3">
-              <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-slate-50 rounded-2xl border border-slate-150 text-xs text-slate-600 font-medium">
-                <div className={`w-2.5 h-2.5 rounded-full ${isSyncing ? 'bg-amber-500 animate-pulse' : 'bg-emerald-500'}`} />
-                <span>
-                  {isSyncing ? 'Sincronizando...' : 'Nuvem Conectada'}
-                </span>
-              </div>
-
-              {/* Sync Code Pill */}
-              <div className="px-3.5 py-1.5 bg-slate-50 text-slate-700 rounded-2xl text-xs font-mono font-bold flex items-center gap-1.5 border border-slate-150">
-                <span className="text-[10px] text-slate-400 font-sans uppercase font-extrabold">Código:</span>
-                <span>{state.syncCode}</span>
-              </div>
-
-              {/* User Bubble */}
-              <button 
-                onClick={() => setActiveTab('profile')}
-                title="Ver Meu Perfil"
-                className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white flex items-center justify-center font-bold text-xs shadow-xs select-none uppercase border border-indigo-100 cursor-pointer hover:scale-105 transition duration-200"
-              >
-                {session ? session.user.name.substring(0, 2).toUpperCase() : state.preferences.userName.charAt(0)}
-              </button>
+            <div>
+              <h2 className="font-bold text-slate-800 leading-tight">FinancesPro</h2>
+              <p className="text-xs text-slate-400">Controle Definitivo</p>
             </div>
           </div>
-        </div>
-      </header>
 
-      {/* 2. Primary Tabs Switcher Subheader */}
-      <nav className="bg-white border-b border-slate-100 shrink-0 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between py-3">
-            {/* Left side: Quick actions or current view state */}
-            <div className="flex items-center gap-3">
-              {/* Home/Dashboard Link */}
-              <button
-                onClick={() => {
-                  setActiveTab('dashboard');
-                  setIsTxMenuOpen(false);
-                  setIsMainMenuOpen(false);
-                }}
-                className={`flex items-center gap-2 px-4 py-2 rounded-2xl text-xs sm:text-sm font-semibold transition duration-200 cursor-pointer border ${
-                  activeTab === 'dashboard'
-                    ? 'bg-violet-50 text-violet-700 border-violet-150'
-                    : 'bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-50 border-slate-200'
-                }`}
-              >
-                <LayoutDashboard className="w-4 h-4 text-violet-600" />
-                <span>Painel</span>
-              </button>
-
-              {/* Transactions Dropdown Button */}
-              <div className="relative">
+          <nav className="space-y-1.5">
+            {[
+              { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+              { id: 'transactions', label: 'Transações', icon: Wallet },
+              { id: 'cards', label: 'Cartões', icon: CreditCard },
+              { id: 'investments', label: 'Investimentos', icon: TrendingUp },
+            ].map((item) => {
+              const Icon = item.icon;
+              const isActive = activeTab === item.id;
+              return (
                 <button
-                  onClick={() => {
-                    setIsTxMenuOpen(!isTxMenuOpen);
-                    setIsMainMenuOpen(false);
-                  }}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-2xl text-xs sm:text-sm font-semibold transition duration-200 cursor-pointer border ${
-                    ['transactions', 'agenda', 'budgets', 'credit_cards', 'forecast'].includes(activeTab)
-                      ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
-                      : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                  key={item.id}
+                  onClick={() => setActiveTab(item.id as any)}
+                  className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-xl font-medium text-sm transition-all ${
+                    isActive 
+                      ? 'bg-emerald-50 text-emerald-600 font-semibold' 
+                      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                   }`}
                 >
-                  <Receipt className="w-4 h-4 text-indigo-600" />
-                  <span>Transações</span>
-                  <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isTxMenuOpen ? 'rotate-180' : ''}`} />
+                  <Icon size={18} />
+                  {item.label}
                 </button>
+              );
+            })}
+          </nav>
+        </div>
 
-                {/* Dropdown Menu for Transaction Options */}
-                {isTxMenuOpen && (
-                  <>
-                    <div className="fixed inset-0 z-10" onClick={() => setIsTxMenuOpen(false)} />
-                    <div className="absolute left-0 mt-2 w-56 rounded-2xl bg-white border border-gray-150 shadow-lg py-2.5 z-20 animate-fade-in">
-                      <div className="px-3.5 pb-2 mb-1 border-b border-gray-100">
-                        <span className="text-[10px] font-extrabold text-gray-400 uppercase tracking-wider font-mono">Lançamentos & Planejamento</span>
-                      </div>
-                      
-                      {/* Sub-option: Transações */}
-                      <button
-                        onClick={() => {
-                          setActiveTab('transactions');
-                          setIsTxMenuOpen(false);
-                        }}
-                        className={`w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold transition text-left cursor-pointer ${
-                          activeTab === 'transactions'
-                            ? 'bg-indigo-50/50 text-indigo-700 font-bold'
-                            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                        }`}
-                      >
-                        <Receipt className="w-4 h-4 text-indigo-500" />
-                        <span>Lista de Transações</span>
-                      </button>
+        <div className="pt-6 border-t border-slate-100">
+          <button 
+            onClick={() => alert('Sistema online')}
+            className="w-full flex items-center gap-3 px-3.5 py-3 rounded-xl font-medium text-sm text-slate-600 hover:bg-slate-50 transition-all"
+          >
+            <LogOut size={18} />
+            Conectado
+          </button>
+        </div>
+      </aside>
 
-                      {/* Sub-option: Agenda */}
-                      <button
-                        onClick={() => {
-                          setActiveTab('agenda');
-                          setIsTxMenuOpen(false);
-                        }}
-                        className={`w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold transition text-left cursor-pointer ${
-                          activeTab === 'agenda'
-                            ? 'bg-indigo-50/50 text-indigo-700 font-bold'
-                            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                        }`}
-                      >
-                        <Calendar className="w-4 h-4 text-indigo-500" />
-                        <span>Agenda & Vencimentos</span>
-                      </button>
+      {/* Conteúdo Central */}
+      <main className="flex-1 flex flex-col min-h-screen">
+        <header className="md:hidden bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between sticky top-0 z-20">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center text-white">
+              <Wallet size={18} />
+            </div>
+            <h2 className="font-bold text-slate-800">FinancesPro</h2>
+          </div>
+          <button 
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="p-2 text-slate-600 hover:bg-slate-100 rounded-xl"
+          >
+            {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </header>
 
-                      {/* Sub-option: Cartões */}
-                      <button
-                        onClick={() => {
-                          setActiveTab('credit_cards');
-                          setIsTxMenuOpen(false);
-                        }}
-                        className={`w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold transition text-left cursor-pointer ${
-                          activeTab === 'credit_cards'
-                            ? 'bg-indigo-50/50 text-indigo-700 font-bold'
-                            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                        }`}
-                      >
-                        <CreditCard className="w-4 h-4 text-indigo-500" />
-                        <span>Faturas de Cartões</span>
-                      </button>
+        {isMobileMenuOpen && (
+          <div className="md:hidden bg-white border-b border-slate-200 p-4 space-y-2 sticky top-[73px] z-10 shadow-lg">
+            {[
+              { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+              { id: 'transactions', label: 'Transações', icon: Wallet },
+              { id: 'cards', label: 'Cartões', icon: CreditCard },
+              { id: 'investments', label: 'Investimentos', icon: TrendingUp },
+            ].map((item) => {
+              const Icon = item.icon;
+              const isActive = activeTab === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => {
+                    setActiveTab(item.id as any);
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm ${
+                    isActive ? 'bg-emerald-50 text-emerald-600' : 'text-slate-600'
+                  }`}
+                >
+                  <Icon size={18} />
+                  {item.label}
+                </button>
+              );
+            })}
+          </div>
+        )}
 
-                      {/* Sub-option: Orçamentos */}
-                      <button
-                        onClick={() => {
-                          setActiveTab('budgets');
-                          setIsTxMenuOpen(false);
-                        }}
-                        className={`w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold transition text-left cursor-pointer ${
-                          activeTab === 'budgets'
-                            ? 'bg-indigo-50/50 text-indigo-700 font-bold'
-                            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                        }`}
-                      >
-                        <Sliders className="w-4 h-4 text-indigo-500" />
-                        <span>Orçamentos Mensais</span>
-                      </button>
+        <div className="p-4 sm:p-8 max-w-7xl mx-auto w-full flex-1">
+          {activeTab === 'dashboard' && (
+            <div className="space-y-6">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                <div>
+                  <h1 className="text-2xl font-bold text-slate-800">Visão Geral</h1>
+                  <p className="text-slate-500 text-sm mt-1">Acompanhe suas finanças e fluxo de caixa em tempo real.</p>
+                </div>
+                <button 
+                  onClick={() => setIsModalOpen(true)}
+                  className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-xl text-sm transition-all shadow-sm shadow-emerald-600/20"
+                >
+                  <Plus size={18} /> Nova Transação
+                </button>
+              </div>
 
-                      {/* Sub-option: Previsões */}
-                      <button
-                        onClick={() => {
-                          setActiveTab('forecast');
-                          setIsTxMenuOpen(false);
-                        }}
-                        className={`w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold transition text-left cursor-pointer ${
-                          activeTab === 'forecast'
-                            ? 'bg-indigo-50/50 text-indigo-700 font-bold'
-                            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                        }`}
-                      >
-                        <LineChart className="w-4 h-4 text-indigo-500" />
-                        <span>Previsões & Histórico</span>
-                      </button>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider">Saldo Total</p>
+                      <h3 className="text-2xl font-bold text-slate-800 mt-2">
+                        R$ {currentBalance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                      </h3>
                     </div>
-                  </>
+                    <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
+                      <Wallet size={22} />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider">Receitas</p>
+                      <h3 className="text-2xl font-bold text-slate-800 mt-2">
+                        R$ {totalIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                      </h3>
+                    </div>
+                    <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
+                      <ArrowDownRight size={22} className="rotate-45" />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider">Despesas</p>
+                      <h3 className="text-2xl font-bold text-slate-800 mt-2">
+                        R$ {totalExpense.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                      </h3>
+                    </div>
+                    <div className="p-3 bg-rose-50 text-rose-600 rounded-xl">
+                      <ArrowUpRight size={22} className="rotate-45" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                <h3 className="font-bold text-slate-800 text-lg mb-4">Transações Recentes</h3>
+                {loading ? (
+                  <p className="text-slate-400 text-sm py-4">Carregando dados do banco...</p>
+                ) : transactions.length === 0 ? (
+                  <p className="text-slate-400 text-sm py-4">Nenhuma transação cadastrada ainda.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {transactions.slice(0, 5).map((tx) => (
+                      <div key={tx.id} className="flex items-center justify-between p-3 hover:bg-slate-50 rounded-xl transition-all">
+                        <div className="flex items-center gap-3">
+                          <div className={`p-2.5 rounded-xl ${tx.type === 'income' ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-600'}`}>
+                            {tx.type === 'income' ? <ArrowDownRight size={18} /> : <ArrowUpRight size={18} />}
+                          </div>
+                          <div>
+                            <h4 className="font-semibold text-slate-800 text-sm">{tx.title}</h4>
+                            <p className="text-xs text-slate-400">{tx.category} • {tx.date}</p>
+                          </div>
+                        </div>
+                        <span className={`font-bold text-sm ${tx.type === 'income' ? 'text-emerald-600' : 'text-slate-800'}`}>
+                          {tx.type === 'income' ? '+ ' : '- '} R$ {Number(tx.amount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
                 )}
               </div>
             </div>
-
-            {/* Middle text indicator: Active View Name */}
-            <div className="hidden md:flex items-center gap-2 text-xs font-medium text-gray-500 bg-slate-50 px-3 py-1.5 border border-gray-150 rounded-xl">
-              <span className="font-bold text-gray-400">Exibindo:</span>
-              <span className="text-gray-800 font-bold uppercase font-sans">
-                {activeTab === 'dashboard' && 'Painel Geral'}
-                {activeTab === 'transactions' && 'Lista de Transações'}
-                {activeTab === 'agenda' && 'Agenda & Calendário'}
-                {activeTab === 'bank' && 'Contas & Integração Bancária'}
-                {activeTab === 'credit_cards' && 'Cartões de Crédito'}
-                {activeTab === 'investments' && 'Investimentos & Ativos'}
-                {activeTab === 'budgets' && 'Orçamentos Mensais'}
-                {activeTab === 'forecast' && 'Previsões & Gráficos'}
-                {activeTab === 'insights' && 'Inteligência & Segurança'}
-                {activeTab === 'android' && 'Instalador de Aplicativo'}
-                {activeTab === 'settings' && 'Sincronização & Preferências'}
-                {activeTab === 'profile' && 'Perfil de Usuário'}
-              </span>
-            </div>
-
-            {/* Right side: Main Menu Button */}
-            <div className="relative">
-              <button
-                onClick={() => {
-                  setIsMainMenuOpen(!isMainMenuOpen);
-                  setIsTxMenuOpen(false);
-                }}
-                className={`flex items-center gap-2 px-4 py-2 rounded-2xl text-xs sm:text-sm font-semibold transition duration-200 cursor-pointer border ${
-                  isMainMenuOpen
-                    ? 'bg-violet-600 border-violet-600 text-white shadow-xs'
-                    : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
-                }`}
-              >
-                <Menu className="w-4 h-4" />
-                <span>Menu</span>
-                <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isMainMenuOpen ? 'rotate-180' : ''}`} />
-              </button>
-
-              {/* Main Menu Dropdown */}
-              {isMainMenuOpen && (
-                <>
-                  <div className="fixed inset-0 z-10" onClick={() => setIsMainMenuOpen(false)} />
-                  <div className="absolute right-0 mt-2 w-64 rounded-2xl bg-white border border-slate-150 shadow-md py-2.5 z-20 animate-fade-in max-h-[80vh] overflow-y-auto">
-                    <div className="px-3.5 pb-2 mb-1 border-b border-slate-100">
-                      <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider font-mono">Todas as Opções</span>
-                    </div>
-
-                    {/* Option: Painel */}
-                    <button
-                      onClick={() => {
-                        setActiveTab('dashboard');
-                        setIsMainMenuOpen(false);
-                      }}
-                      className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold transition duration-200 text-left cursor-pointer ${
-                        activeTab === 'dashboard' ? 'bg-violet-50 text-violet-700 font-bold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                      }`}
-                    >
-                      <LayoutDashboard className="w-4 h-4 text-violet-500" />
-                      <span>Painel Geral</span>
-                    </button>
-
-                    {/* Option: Transações */}
-                    <button
-                      onClick={() => {
-                        setActiveTab('transactions');
-                        setIsMainMenuOpen(false);
-                      }}
-                      className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold transition duration-200 text-left cursor-pointer ${
-                        activeTab === 'transactions' ? 'bg-violet-50 text-violet-700 font-bold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                      }`}
-                    >
-                      <Receipt className="w-4 h-4 text-indigo-500" />
-                      <span>Transações</span>
-                    </button>
-
-                    {/* Option: Agenda */}
-                    <button
-                      onClick={() => {
-                        setActiveTab('agenda');
-                        setIsMainMenuOpen(false);
-                      }}
-                      className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold transition duration-200 text-left cursor-pointer ${
-                        activeTab === 'agenda' ? 'bg-violet-50 text-violet-700 font-bold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                      }`}
-                    >
-                      <Calendar className="w-4 h-4 text-indigo-500" />
-                      <span>Agenda & Vencimentos</span>
-                    </button>
-
-                    {/* Option: Contas & Bancos */}
-                    <button
-                      onClick={() => {
-                        setActiveTab('bank');
-                        setIsMainMenuOpen(false);
-                      }}
-                      className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold transition duration-200 text-left cursor-pointer ${
-                        activeTab === 'bank' ? 'bg-violet-50 text-violet-700 font-bold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                      }`}
-                    >
-                      <Landmark className="w-4 h-4 text-violet-500" />
-                      <span>Contas & Bancos</span>
-                    </button>
-
-                    {/* Option: Cartões */}
-                    <button
-                      onClick={() => {
-                        setActiveTab('credit_cards');
-                        setIsMainMenuOpen(false);
-                      }}
-                      className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold transition duration-200 text-left cursor-pointer ${
-                        activeTab === 'credit_cards' ? 'bg-violet-50 text-violet-700 font-bold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                      }`}
-                    >
-                      <CreditCard className="w-4 h-4 text-indigo-500" />
-                      <span>Cartões de Crédito</span>
-                    </button>
-
-                    {/* Option: Investimentos */}
-                    <button
-                      onClick={() => {
-                        setActiveTab('investments');
-                        setIsMainMenuOpen(false);
-                      }}
-                      className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold transition duration-200 text-left cursor-pointer ${
-                        activeTab === 'investments' ? 'bg-violet-50 text-violet-700 font-bold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                      }`}
-                    >
-                      <Briefcase className="w-4 h-4 text-amber-600" />
-                      <span>Investimentos</span>
-                    </button>
-
-                    {/* Option: Orçamentos */}
-                    <button
-                      onClick={() => {
-                        setActiveTab('budgets');
-                        setIsMainMenuOpen(false);
-                      }}
-                      className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold transition duration-200 text-left cursor-pointer ${
-                        activeTab === 'budgets' ? 'bg-violet-50 text-violet-700 font-bold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                      }`}
-                    >
-                      <Sliders className="w-4 h-4 text-indigo-500" />
-                      <span>Orçamentos Mensais</span>
-                    </button>
-
-                    {/* Option: Previsões & Histórico */}
-                    <button
-                      onClick={() => {
-                        setActiveTab('forecast');
-                        setIsMainMenuOpen(false);
-                      }}
-                      className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold transition duration-200 text-left cursor-pointer ${
-                        activeTab === 'forecast' ? 'bg-violet-50 text-violet-700 font-bold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                      }`}
-                    >
-                      <LineChart className="w-4 h-4 text-indigo-500" />
-                      <span>Previsões & Histórico</span>
-                    </button>
-
-                    <div className="border-t border-slate-100 my-1.5" />
-
-                    {/* Option: Inteligência & Segurança */}
-                    <button
-                      onClick={() => {
-                        setActiveTab('insights');
-                        setIsMainMenuOpen(false);
-                      }}
-                      className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold transition duration-200 text-left cursor-pointer ${
-                        activeTab === 'insights' ? 'bg-violet-50 text-violet-700 font-bold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                      }`}
-                    >
-                      <Brain className="w-4 h-4 text-violet-500 animate-pulse" />
-                      <span>Inteligência & Segurança</span>
-                    </button>
-
-                    {/* Option: Android App */}
-                    <button
-                      onClick={() => {
-                        setActiveTab('android');
-                        setIsMainMenuOpen(false);
-                      }}
-                      className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold transition duration-200 text-left cursor-pointer ${
-                        activeTab === 'android' ? 'bg-violet-50 text-violet-700 font-bold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                      }`}
-                    >
-                      <Smartphone className="w-4 h-4 text-emerald-500 animate-pulse" />
-                      <span>Instalar no Android</span>
-                    </button>
-
-                    {/* Option: Configurações */}
-                    <button
-                      onClick={() => {
-                        setActiveTab('settings');
-                        setIsMainMenuOpen(false);
-                      }}
-                      className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold transition duration-200 text-left cursor-pointer ${
-                        activeTab === 'settings' ? 'bg-violet-50 text-violet-700 font-bold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                      }`}
-                    >
-                      <Settings className="w-4 h-4 text-slate-500" />
-                      <span>Configurações</span>
-                    </button>
-
-                    {/* Option: Perfil */}
-                    <button
-                      onClick={() => {
-                        setActiveTab('profile');
-                        setIsMainMenuOpen(false);
-                      }}
-                      className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold transition duration-200 text-left cursor-pointer ${
-                        activeTab === 'profile' ? 'bg-violet-50 text-violet-700 font-bold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                      }`}
-                    >
-                      <User className="w-4 h-4 text-slate-500" />
-                      <span>Minha Conta</span>
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      {/* 3. Main Viewport Container */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 overflow-y-auto">
-        {!state ? (
-          <div className="flex justify-center p-10 text-slate-500">Carregando dados...</div>
-        ) : (
-          <ErrorBoundary key={activeTab} onReset={() => setActiveTab('dashboard')}>
-            {activeTab === 'dashboard' && (
-              <Dashboard
-                state={state}
-                convertAmount={convertAmount}
-                onNavigate={setActiveTab}
-                exportToCSV={exportToCSV}
-                updateTransaction={updateTransaction}
-                deleteTransaction={deleteTransaction}
-              />
-            )}
-
-          {activeTab === 'agenda' && (
-            <AgendaManager
-              state={state}
-              addTransaction={addTransaction}
-              deleteTransaction={deleteTransaction}
-              updateTransaction={updateTransaction}
-              convertAmount={convertAmount}
-            />
           )}
 
           {activeTab === 'transactions' && (
-            <TransactionsList
-              state={state}
-              addTransaction={addTransaction}
-              deleteTransaction={deleteTransaction}
-              updateTransaction={updateTransaction}
-              convertAmount={convertAmount}
-              addCustomCategory={addCustomCategory}
-              addSubcategory={addSubcategory}
-              addCreditCard={addCreditCard}
-            />
+            <div className="space-y-6">
+              <div className="flex justify-between items-center bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                <div>
+                  <h1 className="text-2xl font-bold text-slate-800">Transações</h1>
+                  <p className="text-slate-500 text-sm mt-1">Histórico completo salvo no banco de dados.</p>
+                </div>
+                <button 
+                  onClick={() => setIsModalOpen(true)}
+                  className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-xl text-sm transition-all"
+                >
+                  <Plus size={18} /> Adicionar Transação
+                </button>
+              </div>
+
+              <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
+                {transactions.length === 0 ? (
+                  <div className="text-center py-12 text-slate-400">
+                    <FileText size={48} className="mx-auto mb-3 opacity-40" />
+                    <p className="font-medium text-slate-600">Nenhuma transação encontrada</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {transactions.map((tx) => (
+                      <div key={tx.id} className="flex items-center justify-between p-3.5 border-b border-slate-50 hover:bg-slate-50 rounded-xl">
+                        <div>
+                          <h4 className="font-semibold text-slate-800">{tx.title}</h4>
+                          <p className="text-xs text-slate-400">{tx.category} • {tx.date}</p>
+                        </div>
+                        <span className={`font-bold ${tx.type === 'income' ? 'text-emerald-600' : 'text-slate-800'}`}>
+                          {tx.type === 'income' ? '+ ' : '- '} R$ {Number(tx.amount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
           )}
 
-          {activeTab === 'bank' && (
-            <BankIntegration
-              state={state}
-              connectBank={connectBank}
-              disconnectBank={disconnectBank}
-              updateBankBalance={updateBankBalance}
-              convertAmount={convertAmount}
-              addCustomBank={addCustomBank}
-            />
-          )}
-
-          {activeTab === 'credit_cards' && (
-            <CreditCardsManager
-              state={state}
-              addCreditCard={addCreditCard}
-              deleteCreditCard={deleteCreditCard}
-              updateCreditCard={updateCreditCard}
-              addTransaction={addTransaction}
-              convertAmount={convertAmount}
-            />
+          {activeTab === 'cards' && (
+            <div className="space-y-6">
+              <h1 className="text-2xl font-bold text-slate-800">Cartões de Crédito</h1>
+              <p className="text-slate-500 text-sm">Gerenciamento de cartões.</p>
+            </div>
           )}
 
           {activeTab === 'investments' && (
-            <InvestmentsManager
-              state={state}
-              addInvestment={addInvestment}
-              deleteInvestment={deleteInvestment}
-              convertAmount={convertAmount}
-            />
+            <div className="space-y-6">
+              <h1 className="text-2xl font-bold text-slate-800">Investimentos</h1>
+              <p className="text-slate-500 text-sm">Acompanhamento de ativos.</p>
+            </div>
           )}
-
-          {activeTab === 'budgets' && (
-            <BudgetsManager
-              state={state}
-              updateBudget={updateBudget}
-              convertAmount={convertAmount}
-            />
-          )}
-
-          {activeTab === 'forecast' && (
-            <ForecastAndHistory
-              state={state}
-              convertAmount={convertAmount}
-              updateBudget={updateBudget}
-            />
-          )}
-
-          {activeTab === 'insights' && (
-            <SmartSecurityIntelligence
-              state={state}
-              setAppLockPin={setAppLockPin}
-              updatePreferences={updatePreferences}
-              lockApp={() => setIsUnlocked(false)}
-              deleteTransaction={deleteTransaction}
-              convertAmount={convertAmount}
-            />
-          )}
-
-          {activeTab === 'android' && (
-            <AndroidPwaInstaller />
-          )}
-
-          {activeTab === 'settings' && (
-            <SyncSettings
-              state={state}
-              setBaseCurrency={setBaseCurrency}
-              setUserName={setUserName}
-              syncWithCode={syncWithCode}
-              isSyncing={isSyncing}
-              forceFetch={() => {}}
-            />
-          )}
-
-            {activeTab === 'profile' && (
-              <UserProfile
-                state={state}
-                session={session}
-                registerUser={registerUser}
-                loginUser={loginUser}
-                loginWithSupabase={loginWithSupabase}
-                logoutUser={handleLogout}
-                updatePassword={updatePassword}
-                updatePreferences={updatePreferences}
-              />
-            )}
-          </ErrorBoundary>
-        )}
+        </div>
       </main>
 
-      {/* 4. Humble Footer */}
-      <footer className="bg-white border-t border-gray-150 py-4 shrink-0 text-center">
-        <p className="text-xs text-gray-400 font-sans">
-          Finança Ativa © 2026 • Sincronismo Open Finance seguro por criptografia ponta-a-ponta
-        </p>
-      </footer>
+      {/* Modal para Adicionar Transação */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4">
+            <div className="flex justify-between items-center">
+              <h3 className="font-bold text-lg text-slate-800">Nova Transação</h3>
+              <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600">
+                <X size={20} />
+              </button>
+            </div>
+
+            <form onSubmit={handleAddTransaction} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">Título</label>
+                <input 
+                  type="text" 
+                  value={newTitle} 
+                  onChange={e => setNewTitle(e.target.value)} 
+                  placeholder="Ex: Salário, Supermercado..." 
+                  required
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">Valor (R$)</label>
+                <input 
+                  type="number" 
+                  step="0.01" 
+                  value={newAmount} 
+                  onChange={e => setNewAmount(e.target.value)} 
+                  placeholder="0.00" 
+                  required
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">Tipo</label>
+                  <select 
+                    value={newType} 
+                    onChange={e => setNewType(e.target.value as any)}
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none"
+                  >
+                    <option value="expense">Despesa</option>
+                    <option value="income">Receita</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">Categoria</label>
+                  <input 
+                    type="text" 
+                    value={newCategory} 
+                    onChange={e => setNewCategory(e.target.value)} 
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <button 
+                type="submit" 
+                className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl text-sm transition-all shadow-md shadow-emerald-600/20 mt-2"
+              >
+                Salvar Definitivamente
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
